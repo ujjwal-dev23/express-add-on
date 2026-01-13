@@ -9,7 +9,7 @@ React + Node.js (+ more)
 
 ## The Workflow (PLEASE READ)
 1.  **Never push to `main` directly.**
-2.  **Create a Branch:** Before starting a task, create a new branch: `git branch -b feature/your-task-name` (or use the "New Branch" button in GitHub Desktop).
+2.  **Create a Branch:** Before starting a task, create a new branch: `git branch feature/your-task-name` (or use the "New Branch" button in GitHub Desktop).
 3.  **Commit Often:** Small, frequent commits are better than one massive one at the end.
 4.  **Pull Request (PR):** When your feature is ready, push your branch and open a PR. **Ujjwal** will review and merge it.
 
