@@ -1,6 +1,6 @@
 # 👥 Team Contributors
 
-List your name, your role for this hackathon, and one "Fun Fact" or "Goal" for the weekend.
+List your name, your Github Username, and the system you use
 
 | Name | Github Username | System/OS |
 | :--- | :--- | :--- |
