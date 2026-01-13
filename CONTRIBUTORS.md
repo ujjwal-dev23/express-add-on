@@ -4,5 +4,5 @@ List your name, your role for this hackathon, and one "Fun Fact" or "Goal" for t
 
 | Name | Github Username | System/OS |
 | :--- | :--- | :--- |
-| **[Your Name]** | @ujjwal-dev23 | Linux (Arch btw.) |
-| (Add your name here) | (Your Username) | (Your System) |
+| **Ujjwal** | @ujjwal-dev23 | Linux (Arch btw.) |
+| **(Add your name here)** | (Your Username) | (Your System) |
