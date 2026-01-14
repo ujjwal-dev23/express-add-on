@@ -1,20 +1,16 @@
-# Project Name (Working Title)
+## About
 
-This is the main repository for our hackathon project. All code must live here.
+This project has been created with _@adobe/create-ccweb-add-on_. As an example, this Add-on demonstrates how to get started with Add-on development using React and TypeScript with Document Sandbox Runtime.
 
-## 🛠 Tech Stack (To be finalized)
-React + Node.js (+ more)
+## Tools
 
----
+-   HTML
+-   CSS
+-   React
+-   TypeScript
 
-## The Workflow (PLEASE READ)
-1.  **Never push to `main` directly.**
-2.  **Create a Branch:** Before starting a task, create a new branch: `git branch feature/your-task-name` (or use the "New Branch" button in GitHub Desktop).
-3.  **Commit Often:** Small, frequent commits are better than one massive one at the end.
-4.  **Pull Request (PR):** When your feature is ready, push your branch and open a PR. **Ujjwal** will review and merge it.
+## Setup
 
----
-
-## Troubleshooting
-* If you get a merge conflict: Ask in the WhatsApp group.
-* If you're using an LLM: Copy-paste our folder structure into the prompt first. 
+1. To install the dependencies, run `npm install`.
+2. To build the application, run `npm run build`.
+3. To start the application, run `npm run start`.
