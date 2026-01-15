@@ -31,4 +31,4 @@ export type AddonMessage =
     | { type: "AI_REMOVE_BG"; payload: null }
     | { type: "CHANGE_LAYOUT"; payload: { ratio: AspectRatio } }
     | { type: "UI_READY"; payload: null }
-    | { type: "ERROR"; payload: { message: string } };
+    | { type: "ERROR"; payload: { message: string, source: "IMPORT" | "SYNC" | "EXPORT" | "SYSTEM" } };
