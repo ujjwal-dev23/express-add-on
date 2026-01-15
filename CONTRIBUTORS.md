@@ -6,4 +6,5 @@ List your name, your Github Username, and the system you use
 | :--- | :--- | :--- |
 | **Ujjwal** | @ujjwal-dev23  | Linux (Arch btw.) |
 | **Kalidas**| @KalidasMarndi | MacOs (Silicon)   |
+| **Aayush**| @Aayush540-tech | MacOs (Silicon)   |
 | **(Add your name here)** | (Your Username) | (Your System) |
