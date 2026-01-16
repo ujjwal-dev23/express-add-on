@@ -22,6 +22,11 @@ export interface VisualProperties {
     filterName?: string;
 }
 
+export interface PageLayoutSettings {
+    width: number;
+    height: number;
+}
+
 export type AddonMessage =
     | { type: "IMPORT_IMAGES"; payload: ImageAsset[] }
     | { type: "FIT_TO_CANVAS"; payload: { fitMode: FitMode } }

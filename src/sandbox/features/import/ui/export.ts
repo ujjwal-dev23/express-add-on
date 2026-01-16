@@ -33,10 +33,10 @@ export async function completeDownload(
         console.log(`[Export] Found ${pages.length} pages to export`);
 
         // Map export format to RenditionFormat constant
-        const renditionFormat = 
+        const renditionFormat =
             format === "png" ? addOnUISdk.constants.RenditionFormat.png :
-            format === "jpg" ? addOnUISdk.constants.RenditionFormat.jpg :
-            addOnUISdk.constants.RenditionFormat.pdf;
+                format === "jpg" ? addOnUISdk.constants.RenditionFormat.jpg :
+                    addOnUISdk.constants.RenditionFormat.pdf;
 
         // Create renditions for all pages
         const renditions = await addOnUISdk.app.document.createRenditions(

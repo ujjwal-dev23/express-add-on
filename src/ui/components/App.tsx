@@ -9,10 +9,13 @@ import "@spectrum-web-components/slider/sp-slider.js";
 
 // To learn more about using "swc-react" visit:
 // https://opensource.adobe.com/spectrum-web-components/using-swc-react/
+import { Button } from "@swc-react/button";
 import { Theme } from "@swc-react/theme";
 import { Divider } from "@swc-react/divider";
 import { Textfield } from "@swc-react/textfield";
-import { Button } from "@swc-react/button";
+import { Slider } from "@swc-react/slider";
+import { Picker } from "@swc-react/picker";
+import { MenuItem } from "@swc-react/menu";
 
 import React from "react";
 import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
@@ -589,7 +592,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 }} />
                             </div>
                         </div>
-
                         <Button
                             variant="cta"
                             onClick={handleExport}

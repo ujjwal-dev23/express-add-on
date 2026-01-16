@@ -6,6 +6,7 @@ import { fitToCanvas } from "./features/canvas-fitting";
 
 import { getExportablePages } from "./features/export";
 import { injectWatermark } from "./features/watermark";
+import { changePageLayout } from "./features/page-layout";
 
 // Get the document sandbox runtime.
 const { runtime } = addOnSandboxSdk.instance;
@@ -43,6 +44,9 @@ function start(): void {
         },
         fitToCanvas: async (fitMode) => {
             await fitToCanvas(fitMode);
+        },
+        changePageLayout: async (ratio) => {
+            await changePageLayout(ratio);
         },
         getPages: async () => getExportablePages()
     };
