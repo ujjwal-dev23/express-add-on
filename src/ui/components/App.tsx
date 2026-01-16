@@ -19,10 +19,11 @@ import { downloadAllPages } from "../../sandbox/features/export/ui";
 
 const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxProxy: DocumentSandboxApi }) => {
     const [asZip, setAsZip] = useState(false);
+    const [filenamePattern, setFilenamePattern] = useState("{date}_{index}");
 
     async function handleClick() {
         try {
-            await downloadAllPages(addOnUISdk, sandboxProxy, asZip ? "zip" : "png");
+            await downloadAllPages(addOnUISdk, sandboxProxy, asZip ? "zip" : "png", filenamePattern);
             console.log("Export and download started");
         } catch (e) {
             console.error("Export failed:", e);
@@ -41,6 +42,19 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                     <Switch checked={asZip} change={() => setAsZip(!asZip)}>
                         Download as ZIP
                     </Switch>
+                </div>
+                <div style={{ marginTop: "10px" }}>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px" }}>Filename Pattern</label>
+                    <input
+                        type="text"
+                        value={filenamePattern}
+                        onChange={(e) => setFilenamePattern(e.target.value)}
+                        placeholder="{date}_{index}"
+                        style={{ width: "100%", padding: "5px", boxSizing: "border-box" }}
+                    />
+                    <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                        Use {"{date}"} and {"{index}"} as placeholders
+                    </div>
                 </div>
             </div>
         </Theme>

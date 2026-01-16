@@ -47,15 +47,37 @@ export const exportAllPages = async (addOnUISdk: AddOnSDKAPI, sandboxProxy: Docu
 import { downloadZip } from "client-zip";
 
 /**
+ * Generates a filename based on the provided pattern, index, and date.
+ * @param pattern The filename pattern (e.g., "{date}_{index}")
+ * @param index The index of the page (0-based)
+ * @returns The generated filename with extension
+ */
+const generateFilename = (pattern: string, index: number): string => {
+  const date = new Date().toISOString().split('T')[0];
+  let filename = pattern
+    .replace(/{index}/g, (index + 1).toString())
+    .replace(/{date}/g, date);
+
+  if (!filename.toLowerCase().endsWith('.png')) {
+    filename += '.png';
+  }
+
+  return filename;
+};
+
+/**
  * Saves the provided renditions to the user's device.
  * @param renditions The renditions to save
+ * @param filenamePattern The pattern to use for filenames
  */
-const saveRenditions = (renditions: { blob: Blob, title?: string }[]) => {
+const saveRenditions = (renditions: { blob: Blob, title?: string }[], filenamePattern: string) => {
   renditions.forEach((rendition, index) => {
+    const filename = generateFilename(filenamePattern, index);
+
     const url = URL.createObjectURL(rendition.blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `page-${index + 1}.png`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   });
@@ -64,15 +86,17 @@ const saveRenditions = (renditions: { blob: Blob, title?: string }[]) => {
 /**
  * Saves the provided renditions as a single ZIP file.
  * @param renditions The renditions to save
+ * @param filenamePattern The pattern to use for filenames inside the zip
  */
-const saveAsZip = async (renditions: { blob: Blob, title?: string }[]) => {
+const saveAsZip = async (renditions: { blob: Blob, title?: string }[], filenamePattern: string) => {
   const files = renditions.map((rendition, index) => ({
-    name: `page-${index + 1}.png`,
+    name: generateFilename(filenamePattern, index),
     lastModified: new Date(),
     input: rendition.blob
   }));
 
   const blob = await downloadZip(files).blob();
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -88,13 +112,19 @@ export type ExportFormat = "png" | "zip";
  * @param addOnUISdk The Add-on SDK instance
  * @param sandboxProxy The Sandbox Proxy instance
  * @param format The format to download (png or zip)
+ * @param filenamePattern The pattern to use for filenames (default: "{date}_{index}")
  */
-export const downloadAllPages = async (addOnUISdk: AddOnSDKAPI, sandboxProxy: DocumentSandboxApi, format: ExportFormat = "png") => {
+export const downloadAllPages = async (
+  addOnUISdk: AddOnSDKAPI,
+  sandboxProxy: DocumentSandboxApi,
+  format: ExportFormat = "png",
+  filenamePattern: string = "{date}_{index}"
+) => {
   const renditions = await exportAllPages(addOnUISdk, sandboxProxy);
 
   if (format === "zip") {
-    await saveAsZip(renditions);
+    await saveAsZip(renditions, filenamePattern);
   } else {
-    saveRenditions(renditions);
+    saveRenditions(renditions, filenamePattern);
   }
 };
