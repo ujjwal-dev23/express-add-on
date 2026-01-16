@@ -18,6 +18,7 @@ import React from "react";
 import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 import "./App.css";
 import { startImageUpload, handleImageDrop, isValidDrag } from "../../sandbox/features/import/ui";
+import { WatermarkTool } from "../../sandbox/features/watermark/ui/WatermarkTool";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 import { ImportTool } from "../../sandbox/features/import/ui/ImportTool";

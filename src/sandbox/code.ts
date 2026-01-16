@@ -5,6 +5,7 @@ import { importImages } from "./features/import";
 import { fitToCanvas } from "./features/canvas-fitting";
 
 import { getExportablePages } from "./features/export";
+import { injectWatermark } from "./features/watermark";
 
 // Get the document sandbox runtime.
 const { runtime } = addOnSandboxSdk.instance;
@@ -36,6 +37,9 @@ function start(): void {
         },
         importImages: async (images) => {
             await importImages(images);
+        },
+        injectWatermark: async (settings) => {
+            await injectWatermark(settings);
         },
         fitToCanvas: async (fitMode) => {
             await fitToCanvas(fitMode);
