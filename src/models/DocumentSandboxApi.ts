@@ -8,4 +8,5 @@ export interface DocumentSandboxApi {
     fitToCanvas(fitMode: FitMode): Promise<void>;
     injectWatermark(settings: WatermarkSettings): Promise<void>;
     changePageLayout(settings: PageLayoutSettings): Promise<void>;
+    resetAllPages(): Promise<void>;
 }

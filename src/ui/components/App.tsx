@@ -4,31 +4,24 @@ import "@spectrum-web-components/theme/express/scale-medium.js";
 import "@spectrum-web-components/theme/express/theme-light.js";
 
 
-import "@spectrum-web-components/divider/sp-divider.js";
-import "@spectrum-web-components/slider/sp-slider.js";
-
 // To learn more about using "swc-react" visit:
 // https://opensource.adobe.com/spectrum-web-components/using-swc-react/
 import { Button } from "@swc-react/button";
-import { Theme } from "@swc-react/theme";
-import { Divider } from "@swc-react/divider";
-import { Textfield } from "@swc-react/textfield";
 import { Slider } from "@swc-react/slider";
 import { Picker } from "@swc-react/picker";
 import { MenuItem } from "@swc-react/menu";
+import { Theme } from "@swc-react/theme";
 
 import React from "react";
 import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 import "./App.css";
 import { startImageUpload, handleImageDrop, isValidDrag } from "../../sandbox/features/import/ui";
+import { resetAllPages as resetAllPagesHelper } from "../../sandbox/features/reset/ui";
 import { WatermarkTool } from "../../sandbox/features/watermark/ui/WatermarkTool";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 import { ImportTool } from "../../sandbox/features/import/ui/ImportTool";
 import { CanvasFittingTool } from "../../sandbox/features/canvas-fitting/ui/CanvasFittingTool";
-
-import { Switch } from "@swc-react/switch";
-import { useState } from "react";
 import { downloadAllPages } from "../../sandbox/features/export/ui";
 
 const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxProxy: DocumentSandboxApi }) => {
@@ -61,6 +54,9 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
 
     // UI state: Watermark Position (Visual placeholders)
     const [watermarkPos, setWatermarkPos] = React.useState<string[]>([]);
+
+    // UI state: Reset
+    const [isResetting, setIsResetting] = React.useState(false);
 
     // Constants
     const TotalFiles = 250;
@@ -174,6 +170,28 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     };
 
     const toggleZipExport = () => setIsZipExport(!isZipExport);
+
+    const handleResetAll = async () => {
+        if (isResetting) return;
+
+        await resetAllPagesHelper(sandboxProxy, {
+            onStart: () => {
+                setIsResetting(true);
+            },
+            onSuccess: () => {
+                setIsResetting(false);
+                setStatus("idle");
+                setFileCount(0);
+                setProgress(0);
+                setHasActiveSession(false);
+                console.log("[UI] Reset complete: all pages deleted");
+            },
+            onError: (error) => {
+                console.error("[UI] Reset failed:", error);
+                setIsResetting(false);
+            }
+        });
+    };
 
     // Helper: Simulated Checkbox
     // Uses Blue-600 (#2563eb) for checked state, Slate-300 (#cbd5e1) for border
@@ -374,11 +392,33 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             <div style={{ display: "flex", gap: "12px" }}>
                                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>From</span>
-                                    <Textfield type="text" inputMode="numeric" value="1" style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></Textfield>
+                                    <input
+                                        type="number"
+                                        value="1"
+                                        style={{
+                                            width: "100%",
+                                            padding: "8px",
+                                            border: "1px solid var(--spectrum-global-color-gray-300)",
+                                            borderRadius: "4px",
+                                            fontSize: "13px"
+                                        }}
+                                        onChange={handleRangeChange}
+                                    />
                                 </div>
                                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>To</span>
-                                    <Textfield type="text" inputMode="numeric" value={`${TotalFiles}`} style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></Textfield>
+                                    <input
+                                        type="number"
+                                        value={`${TotalFiles}`}
+                                        style={{
+                                            width: "100%",
+                                            padding: "8px",
+                                            border: "1px solid var(--spectrum-global-color-gray-300)",
+                                            borderRadius: "4px",
+                                            fontSize: "13px"
+                                        }}
+                                        onChange={handleRangeChange}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -517,7 +557,17 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                 <span style={{ fontSize: "11px", color: "#334155" }}>Naming Pattern</span>
-                                <Textfield placeholder="Item Name - 01" style={{ width: "100%" }}></Textfield>
+                                <input
+                                    type="text"
+                                    placeholder="Item Name - 01"
+                                    style={{
+                                        width: "100%",
+                                        padding: "8px",
+                                        border: "1px solid var(--spectrum-global-color-gray-300)",
+                                        borderRadius: "4px",
+                                        fontSize: "13px"
+                                    }}
+                                />
                                 <span style={{ fontSize: "11px", color: "#64748b" }}>For further updates</span>
                             </div>
                         </div>
@@ -529,14 +579,16 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                     <div style={{ width: "100%", maxWidth: "320px", display: "flex", justifyContent: "flex-end" }}>
                         <Button
                             variant="negative"
-                            onClick={() => { }} // Dummy handler
+                            onClick={handleResetAll}
                             style={{
                                 height: "32px",
                                 borderRadius: "4px",
-                                fontSize: "13px"
+                                fontSize: "13px",
+                                opacity: isResetting ? 0.5 : 1,
+                                pointerEvents: isResetting ? "none" : "auto" as "none" | "auto"
                             }}
                         >
-                            Reset All
+                            {isResetting ? "Resetting..." : "Reset All"}
                         </Button>
                     </div>
                 )}
@@ -850,25 +902,35 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                         <span style={{ fontSize: "11px", color: "#334155" }}>Width (px)</span>
-                                        <Textfield
-                                            type="text"
-                                            inputMode="numeric"
+                                        <input
+                                            type="number"
                                             value={bulkWidth}
                                             placeholder="1080"
-                                            style={{ width: "100%" }}
-                                            onInput={(e: any) => { setBulkWidth(e.target.value); setSelectedPreset(null); }}
-                                        ></Textfield>
+                                            style={{
+                                                width: "100%",
+                                                padding: "8px",
+                                                border: "1px solid var(--spectrum-global-color-gray-300)",
+                                                borderRadius: "4px",
+                                                fontSize: "13px"
+                                            }}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setBulkWidth(e.target.value); setSelectedPreset(null); }}
+                                        />
                                     </div>
                                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                         <span style={{ fontSize: "11px", color: "#334155" }}>Height (px)</span>
-                                        <Textfield
-                                            type="text"
-                                            inputMode="numeric"
+                                        <input
+                                            type="number"
                                             value={bulkHeight}
                                             placeholder="1080"
-                                            style={{ width: "100%" }}
-                                            onInput={(e: any) => { setBulkHeight(e.target.value); setSelectedPreset(null); }}
-                                        ></Textfield>
+                                            style={{
+                                                width: "100%",
+                                                padding: "8px",
+                                                border: "1px solid var(--spectrum-global-color-gray-300)",
+                                                borderRadius: "4px",
+                                                fontSize: "13px"
+                                            }}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setBulkHeight(e.target.value); setSelectedPreset(null); }}
+                                        />
                                     </div>
                                 </div>
                             </div>

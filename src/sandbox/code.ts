@@ -3,6 +3,7 @@ import { editor } from "express-document-sdk";
 import { DocumentSandboxApi } from "../models/DocumentSandboxApi";
 import { importImages } from "./features/import";
 import { fitToCanvas } from "./features/canvas-fitting";
+import { resetAllPages } from "./features/reset";
 
 import { getExportablePages } from "./features/export";
 import { injectWatermark } from "./features/watermark";
@@ -48,7 +49,10 @@ function start(): void {
         changePageLayout: async (ratio) => {
             await changePageLayout(ratio);
         },
-        getPages: async () => getExportablePages()
+        getPages: async () => getExportablePages(),
+        resetAllPages: async () => {
+            await resetAllPages();
+        }
     };
 
     // Expose `sandboxApi` to the UI runtime.
