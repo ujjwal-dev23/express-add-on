@@ -2,6 +2,8 @@ import addOnSandboxSdk from "add-on-sdk-document-sandbox";
 import { editor } from "express-document-sdk";
 import { DocumentSandboxApi } from "../models/DocumentSandboxApi";
 
+import { getExportablePages } from "./features/export";
+
 // Get the document sandbox runtime.
 const { runtime } = addOnSandboxSdk.instance;
 
@@ -29,7 +31,8 @@ function start(): void {
             // Add the rectangle to the document.
             const insertionParent = editor.context.insertionParent;
             insertionParent.children.append(rectangle);
-        }
+        },
+        getPages: async () => getExportablePages()
     };
 
     // Expose `sandboxApi` to the UI runtime.

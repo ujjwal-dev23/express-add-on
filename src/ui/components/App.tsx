@@ -13,9 +13,16 @@ import "./App.css";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 
+import { downloadAllPages } from "../../sandbox/features/export/ui";
+
 const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxProxy: DocumentSandboxApi }) => {
-    function handleClick() {
-        sandboxProxy.createRectangle();
+    async function handleClick() {
+        try {
+            await downloadAllPages(addOnUISdk, sandboxProxy);
+            console.log("Export and download started");
+        } catch (e) {
+            console.error("Export failed:", e);
+        }
     }
 
     return (
@@ -24,7 +31,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
         <Theme system="express" scale="medium" color="light">
             <div className="container">
                 <Button size="m" onClick={handleClick}>
-                    Create Rectangle
+                    Export All Pages
                 </Button>
             </div>
         </Theme>
