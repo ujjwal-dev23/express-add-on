@@ -36,7 +36,10 @@ module.exports = {
             excludeChunks: ["code"]
         }),
         new CopyWebpackPlugin({
-            patterns: [{ from: "src/*.json", to: "[name][ext]" }]
+            patterns: [
+                { from: "src/*.json", to: "[name][ext]" },
+                { from: "public", to: ".", noErrorOnMissing: true }
+            ]
         })
     ],
     module: {
@@ -51,7 +54,11 @@ module.exports = {
                         }
                     }
                 ],
-                include: uiPath,
+                include: (resourcePath) => {
+                    const normalizedPath = resourcePath.replace(/\\/g, "/");
+                    return normalizedPath.includes("/src/ui/") ||
+                        normalizedPath.includes("/sandbox/features/") && normalizedPath.includes("/ui/");
+                },
                 exclude: /node_modules/
             },
             {
@@ -65,7 +72,11 @@ module.exports = {
                     }
                 ],
                 include: sandboxPath,
-                exclude: /node_modules/
+                exclude: (resourcePath) => {
+                    const normalizedPath = resourcePath.replace(/\\/g, "/");
+                    return normalizedPath.includes("node_modules") ||
+                        normalizedPath.includes("/sandbox/features/") && normalizedPath.includes("/ui/");
+                }
             },
             {
                 test: /(\.css)$/,

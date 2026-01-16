@@ -1,6 +1,8 @@
 import addOnSandboxSdk from "add-on-sdk-document-sandbox";
 import { editor } from "express-document-sdk";
 import { DocumentSandboxApi } from "../models/DocumentSandboxApi";
+import { importImages } from "./features/import";
+import { fitToCanvas } from "./features/canvas-fitting";
 
 // Get the document sandbox runtime.
 const { runtime } = addOnSandboxSdk.instance;
@@ -29,6 +31,12 @@ function start(): void {
             // Add the rectangle to the document.
             const insertionParent = editor.context.insertionParent;
             insertionParent.children.append(rectangle);
+        },
+        importImages: async (images) => {
+            await importImages(images);
+        },
+        fitToCanvas: async (fitMode) => {
+            await fitToCanvas(fitMode);
         }
     };
 
