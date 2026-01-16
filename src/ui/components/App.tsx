@@ -18,7 +18,7 @@ import { Divider } from "@swc-react/divider";
 import React from "react";
 import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 import "./App.css";
-import { startImageUpload } from "../../sandbox/features/import/ui";
+import { startImageUpload, handleImageDrop, isValidDrag } from "../../sandbox/features/import/ui";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 
@@ -36,27 +36,60 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     // Constants
     const TotalFiles = 50;
 
+    const importOptions = {
+        onStart: () => {
+            setStatus("uploading");
+            setFileCount(0);
+            setProgress(0);
+        },
+        onSuccess: (count: number) => {
+            setFileCount(count);
+            setProgress(100);
+            setStatus("completed");
+        },
+        onError: (error: unknown) => {
+            console.error("Upload failed", error);
+            setStatus("idle");
+            // Optionally handle error state in UI
+        }
+    };
+
     // Placeholder handlers
     const handleStartUpload = () => {
         if (status !== "idle") return;
+        startImageUpload(sandboxProxy, importOptions);
+    };
 
-        startImageUpload(sandboxProxy, {
-            onStart: () => {
-                setStatus("uploading");
-                setFileCount(0);
-                setProgress(0);
-            },
-            onSuccess: (count) => {
-                setFileCount(count);
-                setProgress(100);
-                setStatus("completed");
-            },
-            onError: (error) => {
-                console.error("Upload failed", error);
-                setStatus("idle");
-                // Optionally handle error state in UI
-            }
-        });
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (status === "idle" && isValidDrag(e)) {
+            setIsHoveringDrag(true);
+        }
+    };
+
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (status === "idle" && isValidDrag(e)) {
+            setIsHoveringDrag(true);
+        }
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsHoveringDrag(false);
+    };
+
+    const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsHoveringDrag(false);
+
+        if (status !== "idle") return;
+
+        await handleImageDrop(e, sandboxProxy, importOptions);
     };
 
     const handleClearBatch = () => {
@@ -129,6 +162,10 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                     <div
                         onMouseEnter={() => setIsHoveringDrag(true)}
                         onMouseLeave={() => setIsHoveringDrag(false)}
+                        onDragOver={handleDragOver}
+                        onDragEnter={handleDragEnter}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
                         onClick={handleStartUpload}
                         style={{
                             display: "flex",

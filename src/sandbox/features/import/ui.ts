@@ -1,4 +1,5 @@
 /// <reference lib="dom" />
+import React from "react";
 import { DocumentSandboxApi } from "../../../models/DocumentSandboxApi";
 import { ImageAsset } from "../../../types";
 
@@ -9,6 +10,32 @@ interface ImportOptions {
   onCancel?: () => void;
   onProgress?: (index: number, total: number) => void; // Optional progress update
 }
+
+/**
+ * Checks if the drag event contains valid files (images).
+ */
+export const isValidDrag = (event: React.DragEvent<HTMLElement>): boolean => {
+  if (!event.dataTransfer) return false;
+  // Check if it's a file drag
+  return event.dataTransfer.types.includes("Files");
+};
+
+/**
+ * Handles the drop event for images.
+ */
+export const handleImageDrop = async (
+  event: React.DragEvent<HTMLElement>,
+  sandboxProxy: DocumentSandboxApi,
+  options: ImportOptions = {}
+): Promise<void> => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const files = event.dataTransfer.files;
+  if (files && files.length > 0) {
+    await processFiles(files, sandboxProxy, options);
+  }
+};
 
 /**
  * Triggers a file upload dialog for images and imports them via the sandbox API.
@@ -38,53 +65,57 @@ export const startImageUpload = (
       return;
     }
 
-    options.onStart?.();
-
-    try {
-      const images: ImageAsset[] = [];
-      const total = files.length;
-
-      if (total > 50) {
-        // Should we enforce the limit here based on App.tsx UI?
-        // Let's just process them, or maybe throw an error/warning?
-        // For now, let's stick to reading them all. 
-        // The UI had a visual limit of 50.
-      }
-
-      // Convert Files to Blobs/ImageAssets
-      for (let i = 0; i < total; i++) {
-        const file = files[i];
-        // In a real app we might want to ensure we don't block the UI reading huge files,
-        // but for this hackathon context, sequentially reading is fine or parallel.
-        const blob = new Blob([file], { type: file.type });
-        images.push({
-          blob: blob,
-          name: file.name
-        });
-
-        // Simulate progress if needed, or just partial updates?
-        // Since reading is fast, we might not need granular progress here 
-        // until we send to sandbox. 
-      }
-
-      // Send to sandbox
-      await sandboxProxy.importImages(images);
-
-      options.onSuccess?.(images.length);
-
-    } catch (error) {
-      console.error("Error importing images:", error);
-      options.onError?.(error);
-    } finally {
-      input.remove();
-    }
+    await processFiles(files, sandboxProxy, options);
+    input.remove();
   };
-
-  // Handle cancellation (this is tricky with file inputs, often relies on onfocus/timeouts)
-  // For simplicity, we won't strictly detect "cancel" of the dialog itself 
-  // unless the browser supports it, but we handle empty selection above.
 
   // Trigger the dialog
   document.body.appendChild(input);
   input.click();
+};
+
+/**
+ * Shared file processing logic.
+ */
+const processFiles = async (
+  files: FileList | File[],
+  sandboxProxy: DocumentSandboxApi,
+  options: ImportOptions
+) => {
+  options.onStart?.();
+
+  try {
+    const images: ImageAsset[] = [];
+    const total = files.length;
+
+    // Convert Files to Blobs/ImageAssets
+    for (let i = 0; i < total; i++) {
+      const file = files[i];
+      // Basic type check to ensure we only get images if the drag/drop wasn't strict enough
+      if (!file.type.startsWith("image/")) {
+        continue;
+      }
+
+      const blob = new Blob([file], { type: file.type });
+      images.push({
+        blob: blob,
+        name: file.name
+      });
+    }
+
+    if (images.length === 0) {
+      // Maybe notify no valid images found?
+      options.onCancel?.();
+      return;
+    }
+
+    // Send to sandbox
+    await sandboxProxy.importImages(images);
+
+    options.onSuccess?.(images.length);
+
+  } catch (error) {
+    console.error("Error importing images:", error);
+    options.onError?.(error);
+  }
 };
