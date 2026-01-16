@@ -9,7 +9,8 @@
                 "name": "Express",
                 "apiVersion": 1
             }
-        ]
+        ],
+        "experimentalApis": true
     },
     "entryPoints": [
         {
@@ -23,5 +24,14 @@
                 ]
             }
         }
-    ]
+    ],
+    "permissions": {
+        "network": {
+            "domains": [
+                "https://*.picsum.photos",
+                "https://picsum.photos",
+                "https://localhost:*"
+            ]
+        }
+    }
 }
