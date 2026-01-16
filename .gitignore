@@ -5,6 +5,7 @@ node_modules/
 # Do not ignore Agentic IDE rules
 !.cursor/rules/
 !.agent/rules/
+!.cursor/mcp.json
 
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,react,node,web
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,react,node,web
