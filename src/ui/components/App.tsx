@@ -18,6 +18,7 @@ import { Divider } from "@swc-react/divider";
 import React from "react";
 import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 import "./App.css";
+import { startImageUpload } from "../../sandbox/features/import/ui";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 
@@ -39,22 +40,23 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     const handleStartUpload = () => {
         if (status !== "idle") return;
 
-        setStatus("uploading");
-        setFileCount(0);
-        setProgress(0);
-
-        // Visual simulation
-        let current = 0;
-        const interval = setInterval(() => {
-            current += 1;
-            setFileCount(current);
-            setProgress((current / TotalFiles) * 100);
-
-            if (current >= TotalFiles) {
-                clearInterval(interval);
+        startImageUpload(sandboxProxy, {
+            onStart: () => {
+                setStatus("uploading");
+                setFileCount(0);
+                setProgress(0);
+            },
+            onSuccess: (count) => {
+                setFileCount(count);
+                setProgress(100);
                 setStatus("completed");
+            },
+            onError: (error) => {
+                console.error("Upload failed", error);
+                setStatus("idle");
+                // Optionally handle error state in UI
             }
-        }, 50);
+        });
     };
 
     const handleClearBatch = () => {
