@@ -20,17 +20,20 @@ export const ImportTool: React.FC<ImportToolProps> = ({ sandboxProxy, addOnUISdk
             console.log(`[UI] Current pathname: ${window.location.pathname}`);
             console.log(`[UI] Current origin: ${window.location.origin}`);
 
-            // Determine base path - try to find the correct path by testing one file first
+            // Determine base path - get the directory where index.html is located
+            const currentUrl = new URL(window.location.href);
+            const baseUrl = currentUrl.href.substring(0, currentUrl.href.lastIndexOf('/'));
             const testFileName = "stress-test-1.jpg";
+            
+            // Build possible paths - prioritize relative paths
             const possibleBasePaths = [
-                // Relative paths
-                new URL("demo-assets", window.location.href).href.replace(/\/$/, ""),
-                new URL("./demo-assets", window.location.href).href.replace(/\/$/, ""),
+                // Relative to current HTML file (most likely to work)
+                `${baseUrl}/demo-assets`,
                 // Absolute paths
                 `${window.location.origin}/demo-assets`,
-                `${window.location.protocol}//${window.location.host}/demo-assets`,
-                // Path based on current directory
-                window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/demo-assets',
+                // Try with and without trailing slash variations
+                `${baseUrl}/demo-assets/`,
+                `${window.location.origin}/demo-assets/`,
             ];
 
             console.log("[UI] Testing possible base paths:", possibleBasePaths);
@@ -39,17 +42,23 @@ export const ImportTool: React.FC<ImportToolProps> = ({ sandboxProxy, addOnUISdk
             
             // Test first image to find working path
             for (const basePath of possibleBasePaths) {
-                const testPath = `${basePath}/${testFileName}`;
+                const testPath = `${basePath.replace(/\/$/, "")}/${testFileName}`;
                 try {
                     console.log(`[UI] Testing path: ${testPath}`);
-                    const testResponse = await fetch(testPath);
+                    const testResponse = await fetch(testPath, {
+                        method: 'GET',
+                        mode: 'cors',
+                        credentials: 'omit'
+                    });
                     if (testResponse.ok) {
                         const testBlob = await testResponse.blob();
                         if (testBlob.size > 0) {
-                            workingBasePath = basePath;
+                            workingBasePath = basePath.replace(/\/$/, "");
                             console.log(`[UI] Found working base path: ${workingBasePath}`);
                             break;
                         }
+                    } else {
+                        console.log(`[UI] Path ${testPath} returned status: ${testResponse.status}`);
                     }
                 } catch (error) {
                     console.log(`[UI] Path ${testPath} failed:`, error);
@@ -57,10 +66,10 @@ export const ImportTool: React.FC<ImportToolProps> = ({ sandboxProxy, addOnUISdk
             }
 
             if (!workingBasePath) {
-                throw new Error(`Could not find demo-assets folder. Tried paths: ${possibleBasePaths.join(", ")}. Please ensure the dev server has copied the public/demo-assets folder to the dist directory.`);
+                throw new Error(`Could not find demo-assets folder. Current URL: ${window.location.href}. Tried paths: ${possibleBasePaths.join(", ")}. Please ensure the dev server is running and has copied the public/demo-assets folder to the dist directory.`);
             }
 
-            // Fetch all 50 images from demo-assets folder
+            // Fetch all available images from demo-assets folder (try 1-50, but accept whatever is available)
             const imagePromises: Promise<ImageAsset | null>[] = [];
             const failedFetches: string[] = [];
             
@@ -68,9 +77,18 @@ export const ImportTool: React.FC<ImportToolProps> = ({ sandboxProxy, addOnUISdk
                 const fileName = `stress-test-${i}.jpg`;
                 const imagePath = `${workingBasePath}/${fileName}`;
 
-                const imagePromise = fetch(imagePath)
+                const imagePromise = fetch(imagePath, {
+                    method: 'GET',
+                    mode: 'cors',
+                    credentials: 'omit',
+                    cache: 'no-cache'
+                })
                     .then(async (response) => {
                         if (!response.ok) {
+                            if (response.status === 404) {
+                                // File doesn't exist, which is okay
+                                return null;
+                            }
                             console.warn(`[UI] Failed to fetch ${fileName}: ${response.status} ${response.statusText}`);
                             return null;
                         }
@@ -86,7 +104,13 @@ export const ImportTool: React.FC<ImportToolProps> = ({ sandboxProxy, addOnUISdk
                         } as ImageAsset;
                     })
                     .catch((error) => {
-                        console.error(`[UI] Error fetching ${fileName}:`, error);
+                        // Only log errors that aren't network/CORS issues as warnings
+                        if (error instanceof TypeError && error.message.includes('fetch')) {
+                            // Likely CORS or network issue
+                            console.warn(`[UI] Could not fetch ${fileName}: Network or CORS issue`);
+                        } else {
+                            console.error(`[UI] Error fetching ${fileName}:`, error);
+                        }
                         failedFetches.push(fileName);
                         return null;
                     });
