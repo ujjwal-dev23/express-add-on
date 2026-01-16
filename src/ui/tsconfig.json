@@ -1,7 +1,12 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "lib": ["dom"]
+        "lib": [
+            "dom"
+        ]
     },
-    "include": ["./**/*"]
+    "include": [
+        "./**/*",
+        "../sandbox/features/**/ui/**/*"
+    ]
 }
