@@ -3,20 +3,33 @@
 import "@spectrum-web-components/theme/express/scale-medium.js";
 import "@spectrum-web-components/theme/express/theme-light.js";
 
+
+import "@spectrum-web-components/divider/sp-divider.js";
+import "@spectrum-web-components/slider/sp-slider.js";
+
 // To learn more about using "swc-react" visit:
 // https://opensource.adobe.com/spectrum-web-components/using-swc-react/
 import { Button } from "@swc-react/button";
 import { Theme } from "@swc-react/theme";
+import { Divider } from "@swc-react/divider";
+import { Textfield } from "@swc-react/textfield";
+import { Slider } from "@swc-react/slider";
+import { Picker } from "@swc-react/picker";
+import { MenuItem } from "@swc-react/menu-item";
 
 import React from "react";
 import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 import "./App.css";
 import { startImageUpload, handleImageDrop, isValidDrag } from "../../sandbox/features/import/ui";
-import { changePageLayout } from "../../sandbox/features/page-layout/ui";
+import { WatermarkTool } from "../../sandbox/features/watermark/ui/WatermarkTool";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 import { ImportTool } from "../../sandbox/features/import/ui/ImportTool";
 import { CanvasFittingTool } from "../../sandbox/features/canvas-fitting/ui/CanvasFittingTool";
+
+import { Switch } from "@swc-react/switch";
+import { useState } from "react";
+import { downloadAllPages } from "../../sandbox/features/export/ui";
 
 const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxProxy: DocumentSandboxApi }) => {
 
@@ -40,6 +53,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     // UI state: Bulk Resize (Visual placeholders)
     const [bulkWidth, setBulkWidth] = React.useState("");
     const [bulkHeight, setBulkHeight] = React.useState("");
+    const [selectedPreset, setSelectedPreset] = React.useState<"instagram" | "facebook" | null>(null);
 
     // UI state: Watermark Settings
     const [watermarkOpacity, setWatermarkOpacity] = React.useState(100);
@@ -48,10 +62,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     // UI state: Watermark Position (Visual placeholders)
     const [watermarkPos, setWatermarkPos] = React.useState<string[]>([]);
 
-    // UI state: Page Layout
-    const [isChangingLayout, setIsChangingLayout] = React.useState(false);
-
-    // TODO : Replace with actual values
     // Constants
     const TotalFiles = 250;
 
@@ -66,25 +76,72 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
         }
     }, [status]);
 
-    // Placeholder handlers
+    // Actual handlers
     const handleStartUpload = () => {
         if (status === "uploading") return;
-        setStatus("uploading");
-        setFileCount(0);
-        setProgress(0);
 
-        let current = 0;
-        const interval = setInterval(() => {
-            current += 5;
-            setFileCount(current);
-            setProgress((current / TotalFiles) * 100);
-
-            if (current >= TotalFiles) {
-                clearInterval(interval);
+        startImageUpload(sandboxProxy, {
+            onStart: () => {
+                setStatus("uploading");
+                setFileCount(0);
+                setProgress(0);
+            },
+            onSuccess: (count) => {
                 setStatus("completed");
-                setHasActiveSession(true); // Enable persistence for other cards
+                setFileCount(count);
+                setProgress(100);
+                setHasActiveSession(true);
+            },
+            onError: (error) => {
+                console.error("Upload failed:", error);
+                setStatus("idle"); // reset on error?
+            },
+            onCancel: () => {
+                if (status !== "completed") setStatus("idle");
             }
-        }, 50);
+        });
+    };
+
+    const handleDrop = async (e: React.DragEvent<HTMLElement>) => {
+        setIsHoveringDrag(false);
+        if (status === "uploading") return;
+
+        if (isValidDrag(e)) {
+            await handleImageDrop(e, sandboxProxy, {
+                onStart: () => {
+                    setStatus("uploading");
+                    setFileCount(0);
+                    setProgress(0);
+                },
+                onSuccess: (count) => {
+                    setStatus("completed");
+                    setFileCount(count);
+                    setProgress(100);
+                    setHasActiveSession(true);
+                },
+                onError: (error) => {
+                    console.error("Drop failed:", error);
+                    setStatus("idle");
+                }
+            });
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLElement>) => {
+        e.preventDefault();
+        if (!isHoveringDrag) setIsHoveringDrag(true);
+    };
+
+    const handleDragLeave = () => {
+        setIsHoveringDrag(false);
+    };
+
+    const handleApplyFitting = async () => {
+        try {
+            await sandboxProxy.fitToCanvas(fittingOption);
+        } catch (e) {
+            console.error("Fit to canvas failed", e);
+        }
     };
 
     // Dummy handlers for UI consistency
@@ -99,11 +156,13 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     const handlePresetIG = () => {
         setBulkWidth("1080");
         setBulkHeight("1350");
+        setSelectedPreset("instagram");
     };
 
     const handlePresetFB = () => {
         setBulkWidth("1200");
         setBulkHeight("630");
+        setSelectedPreset("facebook");
     };
 
     const toggleWatermarkPos = (pos: string) => {
@@ -115,39 +174,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     };
 
     const toggleZipExport = () => setIsZipExport(!isZipExport);
-
-    // Handler for page layout change demo
-    const handleChangePageLayout = async () => {
-        setIsChangingLayout(true);
-        try {
-            // Demo: Change all pages to 1080x1920 (9:16 aspect ratio)
-            await changePageLayout(sandboxProxy, {
-                width: 1080,
-                height: 1920
-            }, {
-                onStart: () => {
-                    console.log("[UI] Starting page layout change...");
-                },
-                onSuccess: () => {
-                    console.log("[UI] Page layout changed successfully!");
-                    setIsChangingLayout(false);
-                },
-                onError: (error) => {
-                    console.error("[UI] Failed to change page layout:", error);
-                    setIsChangingLayout(false);
-                }
-            });
-        } catch (error) {
-            console.error("[UI] Error changing page layout:", error);
-            setIsChangingLayout(false);
-        }
-    };
-
-    // Helper for disabled style
-    const getDisabledStyle = (isDisabled: boolean) => ({
-        opacity: isDisabled ? 0.5 : 1,
-        pointerEvents: isDisabled ? "none" : "auto" as "none" | "auto"
-    });
 
     // Helper: Simulated Checkbox
     // Uses Blue-600 (#2563eb) for checked state, Slate-300 (#cbd5e1) for border
@@ -219,6 +245,9 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         onMouseEnter={() => setIsHoveringDrag(true)}
                         onMouseLeave={() => setIsHoveringDrag(false)}
                         onClick={handleStartUpload}
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
                         style={{
                             display: "flex",
                             flexDirection: "column",
@@ -267,46 +296,46 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 {status === "completed" ? "You can continue adding images" : "Images will be processed instantly"}
                             </span>
                         </div>
-                    </div>
 
-                    <span style={{ fontSize: "11px", color: "#64748b" }}>
-                        Upload JPG or PNG files (Max {TotalFiles})
-                    </span>
+                        <span style={{ fontSize: "11px", color: "#64748b" }}>
+                            Upload JPG or PNG files (Max {TotalFiles})
+                        </span>
 
-                    {/* Progress Status */}
-                    {(status === "uploading" || status === "completed") && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#334155" }}>
-                                <span>{status === "uploading" ? "Uploading files..." : "Files loaded"}</span>
-                                {/* Reset Progress Text */}
-                                <span>{status === "completed" ? "Ready for next upload" : status === "uploading" ? `Uploading ${fileCount} of ${TotalFiles} files` : `${TotalFiles} files uploaded`}</span>
-                            </div>
+                        {/* Progress Status */}
+                        {(status === "uploading" || status === "completed") && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#334155" }}>
+                                    <span>{status === "uploading" ? "Uploading files..." : "Files loaded"}</span>
+                                    {/* Reset Progress Text */}
+                                    <span>{status === "completed" ? "Ready for next upload" : status === "uploading" ? `Uploading ${fileCount} of ${TotalFiles} files` : `${TotalFiles} files uploaded`}</span>
+                                </div>
 
-                            {/* Visual progress bar */}
-                            <div style={{
-                                width: "100%",
-                                height: "6px",
-                                backgroundColor: "#e2e8f0",
-                                borderRadius: "3px",
-                                overflow: "hidden"
-                            }}>
+                                {/* Visual progress bar */}
                                 <div style={{
-                                    width: `${progress}%`,
-                                    height: "100%",
-                                    backgroundColor: status === "completed" ? "var(--spectrum-global-color-green-500)" : "#2563eb",
+                                    width: "100%",
+                                    height: "6px",
+                                    backgroundColor: "#e2e8f0",
                                     borderRadius: "3px",
-                                    transition: "width 0.05s linear, background-color 0.3s"
-                                }}></div>
+                                    overflow: "hidden"
+                                }}>
+                                    <div style={{
+                                        width: `${progress}%`,
+                                        height: "100%",
+                                        backgroundColor: status === "completed" ? "var(--spectrum-global-color-green-500)" : "#2563eb",
+                                        borderRadius: "3px",
+                                        transition: "width 0.05s linear, background-color 0.3s"
+                                    }}></div>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {/* Show "No assets loaded" ONLY if idle and NO session active */}
-                    {status === "idle" && !hasActiveSession && (
-                        <div style={{ fontSize: "12px", color: "#64748b" }}>
-                            No assets loaded
-                        </div>
-                    )}
+                        {/* Show "No assets loaded" ONLY if idle and NO session active */}
+                        {status === "idle" && !hasActiveSession && (
+                            <div style={{ fontSize: "12px", color: "#64748b" }}>
+                                No assets loaded
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* 2) Batch Controls Card */}
@@ -345,13 +374,11 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             <div style={{ display: "flex", gap: "12px" }}>
                                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>From</span>
-                                    {/* @ts-ignore */}
-                                    <sp-textfield type="number" value="1" style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></sp-textfield>
+                                    <Textfield type="text" inputMode="numeric" value="1" style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></Textfield>
                                 </div>
                                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>To</span>
-                                    {/* @ts-ignore */}
-                                    <sp-textfield type="number" value={`${TotalFiles}`} style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></sp-textfield>
+                                    <Textfield type="text" inputMode="numeric" value={`${TotalFiles}`} style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></Textfield>
                                 </div>
                             </div>
                         </div>
@@ -395,7 +422,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                     </Button>
                                 </div>
                                 <Button
-                                    variant="primary"
+                                    variant="cta"
                                     onClick={() => { }} // Dummy Apply handler
                                     style={{
                                         width: "100%",
@@ -411,7 +438,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         </div>
 
                         {/* Watermark Button */}
-                        <div style={{ display: "flex", justifyContent: "center" }}>
+                        <div style={{ display: "flex", justifyContent: "flex-start" }}>
                             <Button
                                 variant="secondary"
                                 quiet
@@ -424,17 +451,19 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                     padding: "0 12px"
                                 }}
                             >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px" }}>
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                </svg>
-                                Apply Watermark
+                                <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px" }}>
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    </svg>
+                                    Apply Watermark
+                                </div>
                             </Button>
                         </div>
 
                         {/* Bulk Resize Button */}
                         <div style={{ display: "flex", justifyContent: "flex-start" }}>
                             <Button
-                                variant="primary"
+                                variant="cta"
                                 onClick={() => setIsBulkResizeDialogOpen(true)}
                                 style={{
                                     height: "32px",
@@ -443,28 +472,10 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                     padding: "0 12px"
                                 }}
                             >
-                                Bulk Resize
-                            </Button>
-                        </div>
-
-                        {/* Page Layout Change Demo Button */}
-                        <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                            <Button
-                                variant="secondary"
-                                onClick={handleChangePageLayout}
-                                disabled={isChangingLayout}
-                                style={{
-                                    height: "32px",
-                                    borderRadius: "4px",
-                                    fontSize: "13px",
-                                    padding: "0 12px",
-                                    ...getDisabledStyle(isChangingLayout)
-                                }}
-                            >
-                                {isChangingLayout ? "Changing Layout..." : "Change Page Layout (1080x1920)"}
                             </Button>
                         </div>
                     </div>
+
                 )}
 
                 {/* 3) Smart Naming Card */}
@@ -489,8 +500,8 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                 <span style={{ fontSize: "11px", color: "#334155" }}>Naming Pattern</span>
-                                {/* @ts-ignore */}
-                                <sp-textfield placeholder="Item Name - 01" style={{ width: "100%" }}></sp-textfield>
+                                <Textfield placeholder="Item Name - 01" style={{ width: "100%" }}></Textfield>
+                                <span style={{ fontSize: "11px", color: "#64748b" }}>For further updates</span>
                             </div>
                         </div>
                     </div>
@@ -501,7 +512,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                     <div style={{ width: "100%", maxWidth: "320px", display: "flex", justifyContent: "flex-end" }}>
                         <Button
                             variant="negative"
-                            quiet
                             onClick={() => { }} // Dummy handler
                             style={{
                                 height: "32px",
@@ -715,7 +725,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         backdropFilter: "blur(2px)"
                     }}>
                         <div style={{
-                            width: "280px",
+                            width: "360px",
                             backgroundColor: "white",
                             borderRadius: "8px",
                             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -734,41 +744,115 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
 
                                 {/* Presets */}
-                                <div style={{ display: "flex", gap: "8px" }}>
-                                    <Button
-                                        variant="secondary"
+                                <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
+                                    {/* Instagram Card */}
+                                    <div
                                         onClick={handlePresetIG}
-                                        style={{ flex: 1, flexDirection: "column", height: "auto", padding: "8px 0", gap: "4px" }}
+                                        style={{
+                                            width: "100px",
+                                            padding: "16px 8px",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: "8px",
+                                            border: `2px solid ${selectedPreset === "instagram" ? "#2563eb" : "#e2e8f0"}`,
+                                            borderRadius: "8px",
+                                            backgroundColor: selectedPreset === "instagram" ? "#eff6ff" : "white",
+                                            cursor: "pointer",
+                                            transition: "all 0.2s ease"
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (selectedPreset !== "instagram") e.currentTarget.style.borderColor = "#cbd5e1";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (selectedPreset !== "instagram") e.currentTarget.style.borderColor = "#e2e8f0";
+                                        }}
                                     >
-                                        {/* Simple Icon placeholder */}
-                                        <div style={{ width: "16px", height: "16px", backgroundColor: "#334155", borderRadius: "2px" }}></div>
-                                        <span style={{ fontSize: "10px" }}>Instagram</span>
-                                    </Button>
-                                    <Button
-                                        variant="secondary"
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={selectedPreset === "instagram" ? "#2563eb" : "#334155"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                        </svg>
+                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                                            <span style={{
+                                                fontSize: "12px",
+                                                fontWeight: "bold",
+                                                color: selectedPreset === "instagram" ? "#1e40af" : "#334155"
+                                            }}>
+                                                Instagram
+                                            </span>
+                                            <span style={{ fontSize: "10px", color: "#64748b" }}>1080 × 1080</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Facebook Card */}
+                                    <div
                                         onClick={handlePresetFB}
-                                        style={{ flex: 1, flexDirection: "column", height: "auto", padding: "8px 0", gap: "4px" }}
+                                        style={{
+                                            width: "100px",
+                                            padding: "16px 8px",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: "8px",
+                                            border: `2px solid ${selectedPreset === "facebook" ? "#2563eb" : "#e2e8f0"}`,
+                                            borderRadius: "8px",
+                                            backgroundColor: selectedPreset === "facebook" ? "#eff6ff" : "white",
+                                            cursor: "pointer",
+                                            transition: "all 0.2s ease"
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (selectedPreset !== "facebook") e.currentTarget.style.borderColor = "#cbd5e1";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (selectedPreset !== "facebook") e.currentTarget.style.borderColor = "#e2e8f0";
+                                        }}
                                     >
-                                        <div style={{ width: "16px", height: "16px", backgroundColor: "#334155", borderRadius: "2px" }}></div>
-                                        <span style={{ fontSize: "10px" }}>Facebook</span>
-                                    </Button>
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={selectedPreset === "facebook" ? "#2563eb" : "#334155"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                                        </svg>
+                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                                            <span style={{
+                                                fontSize: "12px",
+                                                fontWeight: "bold",
+                                                color: selectedPreset === "facebook" ? "#1e40af" : "#334155"
+                                            }}>
+                                                Facebook
+                                            </span>
+                                            <span style={{ fontSize: "10px", color: "#64748b" }}>1200 × 630</span>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <span style={{ fontSize: "11px", color: "#64748b", textAlign: "center" }}>
-                                    or Custom
+                                <span style={{ fontSize: "14px", color: "#64748b", textAlign: "center", fontWeight: "500" }}>
+                                    or
                                 </span>
 
                                 {/* Dimensions */}
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                         <span style={{ fontSize: "11px", color: "#334155" }}>Width (px)</span>
-                                        {/* @ts-ignore */}
-                                        <sp-textfield type="number" value={bulkWidth} placeholder="1080" style={{ width: "100%" }} onInput={(e: any) => setBulkWidth(e.target.value)}></sp-textfield>
+                                        <Textfield
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={bulkWidth}
+                                            placeholder="1080"
+                                            style={{ width: "100%" }}
+                                            onInput={(e: any) => { setBulkWidth(e.target.value); setSelectedPreset(null); }}
+                                        ></Textfield>
                                     </div>
                                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                         <span style={{ fontSize: "11px", color: "#334155" }}>Height (px)</span>
-                                        {/* @ts-ignore */}
-                                        <sp-textfield type="number" value={bulkHeight} placeholder="1080" style={{ width: "100%" }} onInput={(e: any) => setBulkHeight(e.target.value)}></sp-textfield>
+                                        <Textfield
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={bulkHeight}
+                                            placeholder="1080"
+                                            style={{ width: "100%" }}
+                                            onInput={(e: any) => { setBulkHeight(e.target.value); setSelectedPreset(null); }}
+                                        ></Textfield>
                                     </div>
                                 </div>
                             </div>
@@ -787,8 +871,9 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             </div>
                         </div>
                     </div>
-                )}
-        </Theme>
+                )
+            }
+        </Theme >
     );
 };
 
