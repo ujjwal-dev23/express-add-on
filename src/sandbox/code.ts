@@ -2,6 +2,9 @@ import addOnSandboxSdk from "add-on-sdk-document-sandbox";
 import { editor } from "express-document-sdk";
 import { DocumentSandboxApi } from "../models/DocumentSandboxApi";
 import { importImages } from "./features/import";
+import { fitToCanvas } from "./features/canvas-fitting";
+
+import { getExportablePages } from "./features/export";
 import { injectWatermark } from "./features/watermark";
 
 // Get the document sandbox runtime.
@@ -37,7 +40,11 @@ function start(): void {
         },
         injectWatermark: async (settings) => {
             await injectWatermark(settings);
-        }
+        },
+        fitToCanvas: async (fitMode) => {
+            await fitToCanvas(fitMode);
+        },
+        getPages: async () => getExportablePages()
     };
 
     // Expose `sandboxApi` to the UI runtime.
