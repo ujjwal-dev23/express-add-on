@@ -3,6 +3,7 @@
 import "@spectrum-web-components/theme/express/scale-medium.js";
 import "@spectrum-web-components/theme/express/theme-light.js";
 
+
 import "@spectrum-web-components/divider/sp-divider.js";
 import "@spectrum-web-components/slider/sp-slider.js";
 
@@ -446,10 +447,12 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                     padding: "0 12px"
                                 }}
                             >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px" }}>
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                </svg>
-                                Apply Watermark
+                                <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px" }}>
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    </svg>
+                                    Apply Watermark
+                                </div>
                             </Button>
                         </div>
 
@@ -465,10 +468,27 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                     padding: "0 12px"
                                 }}
                             >
-                                Bulk Resize
+                                <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                                    <div style={{
+                                        width: "18px",
+                                        height: "18px",
+                                        backgroundColor: "#f472b6",
+                                        borderRadius: "50%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        marginRight: "8px"
+                                    }}>
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
+                                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+                                        </svg>
+                                    </div>
+                                    Bulk Resize
+                                </div>
                             </Button>
                         </div>
                     </div>
+
                 )}
 
                 {/* 3) Smart Naming Card */}
@@ -494,6 +514,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                 <span style={{ fontSize: "11px", color: "#334155" }}>Naming Pattern</span>
                                 <Textfield placeholder="Item Name - 01" style={{ width: "100%" }}></Textfield>
+                                <span style={{ fontSize: "11px", color: "#64748b" }}>For further updates</span>
                             </div>
                         </div>
                     </div>
@@ -747,7 +768,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                             flexDirection: "column",
                                             alignItems: "center",
                                             justifyContent: "center",
-                                            gap: "12px",
+                                            gap: "8px",
                                             border: `2px solid ${selectedPreset === "instagram" ? "#2563eb" : "#e2e8f0"}`,
                                             borderRadius: "8px",
                                             backgroundColor: selectedPreset === "instagram" ? "#eff6ff" : "white",
@@ -766,13 +787,16 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
                                             <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
                                         </svg>
-                                        <span style={{
-                                            fontSize: "12px",
-                                            fontWeight: selectedPreset === "instagram" ? "600" : "400",
-                                            color: selectedPreset === "instagram" ? "#1e40af" : "#334155"
-                                        }}>
-                                            Instagram
-                                        </span>
+                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                                            <span style={{
+                                                fontSize: "12px",
+                                                fontWeight: "bold",
+                                                color: selectedPreset === "instagram" ? "#1e40af" : "#334155"
+                                            }}>
+                                                Instagram
+                                            </span>
+                                            <span style={{ fontSize: "10px", color: "#64748b" }}>1080 × 1080</span>
+                                        </div>
                                     </div>
 
                                     {/* Facebook Card */}
@@ -785,7 +809,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                             flexDirection: "column",
                                             alignItems: "center",
                                             justifyContent: "center",
-                                            gap: "12px",
+                                            gap: "8px",
                                             border: `2px solid ${selectedPreset === "facebook" ? "#2563eb" : "#e2e8f0"}`,
                                             borderRadius: "8px",
                                             backgroundColor: selectedPreset === "facebook" ? "#eff6ff" : "white",
@@ -802,13 +826,16 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={selectedPreset === "facebook" ? "#2563eb" : "#334155"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
                                         </svg>
-                                        <span style={{
-                                            fontSize: "12px",
-                                            fontWeight: selectedPreset === "facebook" ? "600" : "400",
-                                            color: selectedPreset === "facebook" ? "#1e40af" : "#334155"
-                                        }}>
-                                            Facebook
-                                        </span>
+                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                                            <span style={{
+                                                fontSize: "12px",
+                                                fontWeight: "bold",
+                                                color: selectedPreset === "facebook" ? "#1e40af" : "#334155"
+                                            }}>
+                                                Facebook
+                                            </span>
+                                            <span style={{ fontSize: "10px", color: "#64748b" }}>1200 × 630</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -857,8 +884,9 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             </div>
                         </div>
                     </div>
-                )}
-        </Theme>
+                )
+            }
+        </Theme >
     );
 };
 
