@@ -18,5 +18,14 @@
             "main": "index.html",
             "documentSandbox": "code.js"
         }
-    ]
+    ],
+    "permissions": {
+        "network": {
+            "domains": [
+                "https://*.picsum.photos",
+                "https://picsum.photos",
+                "https://localhost:*"
+            ]
+        }
+    }
 }
