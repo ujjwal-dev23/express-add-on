@@ -7,6 +7,9 @@ import "@spectrum-web-components/theme/express/theme-light.js";
 // To learn more about using "swc-react" visit:
 // https://opensource.adobe.com/spectrum-web-components/using-swc-react/
 import { Button } from "@swc-react/button";
+import { Slider } from "@swc-react/slider";
+import { Picker } from "@swc-react/picker";
+import { MenuItem } from "@swc-react/menu";
 import { Theme } from "@swc-react/theme";
 
 import React from "react";
@@ -14,6 +17,7 @@ import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 import "./App.css";
 import { startImageUpload, handleImageDrop, isValidDrag } from "../../sandbox/features/import/ui";
 import { resetAllPages as resetAllPagesHelper } from "../../sandbox/features/reset/ui";
+import { WatermarkTool } from "../../sandbox/features/watermark/ui/WatermarkTool";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 import { ImportTool } from "../../sandbox/features/import/ui/ImportTool";
@@ -169,7 +173,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
 
     const handleResetAll = async () => {
         if (isResetting) return;
-        
+
         await resetAllPagesHelper(sandboxProxy, {
             onStart: () => {
                 setIsResetting(true);
@@ -388,32 +392,32 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             <div style={{ display: "flex", gap: "12px" }}>
                                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>From</span>
-                                    <input 
-                                        type="number" 
-                                        value="1" 
-                                        style={{ 
-                                            width: "100%", 
+                                    <input
+                                        type="number"
+                                        value="1"
+                                        style={{
+                                            width: "100%",
                                             padding: "8px",
                                             border: "1px solid var(--spectrum-global-color-gray-300)",
                                             borderRadius: "4px",
                                             fontSize: "13px"
-                                        }} 
-                                        onChange={handleRangeChange} 
+                                        }}
+                                        onChange={handleRangeChange}
                                     />
                                 </div>
                                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>To</span>
-                                    <input 
-                                        type="number" 
-                                        value={`${TotalFiles}`} 
-                                        style={{ 
-                                            width: "100%", 
+                                    <input
+                                        type="number"
+                                        value={`${TotalFiles}`}
+                                        style={{
+                                            width: "100%",
                                             padding: "8px",
                                             border: "1px solid var(--spectrum-global-color-gray-300)",
                                             borderRadius: "4px",
                                             fontSize: "13px"
-                                        }} 
-                                        onChange={handleRangeChange} 
+                                        }}
+                                        onChange={handleRangeChange}
                                     />
                                 </div>
                             </div>
@@ -553,16 +557,16 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                 <span style={{ fontSize: "11px", color: "#334155" }}>Naming Pattern</span>
-                                <input 
-                                    type="text" 
-                                    placeholder="Item Name - 01" 
-                                    style={{ 
-                                        width: "100%", 
+                                <input
+                                    type="text"
+                                    placeholder="Item Name - 01"
+                                    style={{
+                                        width: "100%",
                                         padding: "8px",
                                         border: "1px solid var(--spectrum-global-color-gray-300)",
                                         borderRadius: "4px",
                                         fontSize: "13px"
-                                    }} 
+                                    }}
                                 />
                                 <span style={{ fontSize: "11px", color: "#64748b" }}>For further updates</span>
                             </div>
@@ -640,7 +644,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 }} />
                             </div>
                         </div>
-
                         <Button
                             variant="cta"
                             onClick={handleExport}
@@ -903,8 +906,8 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                             type="number"
                                             value={bulkWidth}
                                             placeholder="1080"
-                                            style={{ 
-                                                width: "100%", 
+                                            style={{
+                                                width: "100%",
                                                 padding: "8px",
                                                 border: "1px solid var(--spectrum-global-color-gray-300)",
                                                 borderRadius: "4px",
@@ -919,8 +922,8 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                             type="number"
                                             value={bulkHeight}
                                             placeholder="1080"
-                                            style={{ 
-                                                width: "100%", 
+                                            style={{
+                                                width: "100%",
                                                 padding: "8px",
                                                 border: "1px solid var(--spectrum-global-color-gray-300)",
                                                 borderRadius: "4px",
