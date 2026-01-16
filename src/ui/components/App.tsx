@@ -6,13 +6,10 @@ import "@spectrum-web-components/theme/express/theme-light.js";
 
 import "@spectrum-web-components/divider/sp-divider.js";
 import "@spectrum-web-components/slider/sp-slider.js";
-import "@spectrum-web-components/slider/sp-slider.js";
 
 // To learn more about using "swc-react" visit:
 // https://opensource.adobe.com/spectrum-web-components/using-swc-react/
 import { Theme } from "@swc-react/theme";
-import { Divider } from "@swc-react/divider";
-import { Textfield } from "@swc-react/textfield";
 import { Divider } from "@swc-react/divider";
 import { Textfield } from "@swc-react/textfield";
 import { Button } from "@swc-react/button";
@@ -52,7 +49,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     // UI state: Bulk Resize (Visual placeholders)
     const [bulkWidth, setBulkWidth] = React.useState("");
     const [bulkHeight, setBulkHeight] = React.useState("");
-    const [selectedPreset, setSelectedPreset] = React.useState<"instagram" | "facebook" | null>(null);
     const [selectedPreset, setSelectedPreset] = React.useState<"instagram" | "facebook" | null>(null);
 
     // UI state: Watermark Settings
@@ -157,13 +153,11 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
         setBulkWidth("1080");
         setBulkHeight("1350");
         setSelectedPreset("instagram");
-        setSelectedPreset("instagram");
     };
 
     const handlePresetFB = () => {
         setBulkWidth("1200");
         setBulkHeight("630");
-        setSelectedPreset("facebook");
         setSelectedPreset("facebook");
     };
 
@@ -377,11 +371,9 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>From</span>
                                     <Textfield type="text" inputMode="numeric" value="1" style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></Textfield>
-                                    <Textfield type="text" inputMode="numeric" value="1" style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></Textfield>
                                 </div>
                                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>To</span>
-                                    <Textfield type="text" inputMode="numeric" value={`${TotalFiles}`} style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></Textfield>
                                     <Textfield type="text" inputMode="numeric" value={`${TotalFiles}`} style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></Textfield>
                                 </div>
                             </div>
@@ -428,8 +420,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 <Button
                                     variant="cta"
                                     onClick={() => { }} // Dummy Apply handler
-                                    variant="cta"
-                                    onClick={() => { }} // Dummy Apply handler
                                     style={{
                                         width: "100%",
                                         height: "32px",
@@ -445,481 +435,459 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
 
                         {/* Watermark Button */}
                         <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                            <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                                <Button
-                                    variant="secondary"
-                                    quiet
-                                    onClick={handleOpenWatermark}
-                                    style={{
-                                        minWidth: "auto",
-                                        height: "32px",
-                                        borderRadius: "4px",
-                                        fontSize: "13px",
-                                        padding: "0 12px"
-                                    }}
-                                >
-                                    <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px" }}>
-                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                        </svg>
-                                        Apply Watermark
-                                    </div>
-                                </Button>
-                            </div>
-
-                            {/* Bulk Resize Button */}
-                            <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                                <Button
-                                    variant="cta"
-                                    variant="cta"
-                                    onClick={() => setIsBulkResizeDialogOpen(true)}
-                                    style={{
-                                        height: "32px",
-                                        borderRadius: "4px",
-                                        fontSize: "13px",
-                                        padding: "0 12px"
-                                    }}
-                                >
-                                    <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
-                                        <div style={{
-                                            width: "18px",
-                                            height: "18px",
-                                            backgroundColor: "#f472b6",
-                                            borderRadius: "50%",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            marginRight: "8px"
-                                        }}>
-                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                                                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
-                                            </svg>
-                                        </div>
-                                        Bulk Resize
-                                    </div>
-                                </Button>
-                            </div>
-                        </div>
-                )}
-
-                        {/* 3) Smart Naming Card */}
-                        {(status !== 'idle' || hasActiveSession) && (
-                            <div
-                                style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: "16px",
-                                    border: "1px solid #e2e8f0",
-                                    borderRadius: "8px",
-                                    padding: "16px",
-                                    backgroundColor: "#ffffff",
-                                    boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
-                                    width: "100%",
-                                    maxWidth: "320px"
-                                }}
-                            >
-                                <span style={{ fontSize: "14px", fontWeight: "bold", color: "#0f172a" }}>
-                                    Smart Naming
-                                </span>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                                        <span style={{ fontSize: "11px", color: "#334155" }}>Naming Pattern</span>
-                                        <Textfield placeholder="Item Name - 01" style={{ width: "100%" }}></Textfield>
-                                        <span style={{ fontSize: "11px", color: "#64748b" }}>For further updates</span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 4) Reset All Button */}
-                        {(status !== 'idle' || hasActiveSession) && (
-                            <div style={{ width: "100%", maxWidth: "320px", display: "flex", justifyContent: "flex-end" }}>
-                                <Button
-                                    variant="negative"
-                                    onClick={() => { }} // Dummy handler
-                                    style={{
-                                        height: "32px",
-                                        borderRadius: "4px",
-                                        fontSize: "13px"
-                                    }}
-                                >
-                                    Reset All
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-
-            {/* STICKY EXPORT FOOTER - REVEAL ONLY AFTER INTERACTION */}
-                {/* Background: White (#ffffff), Border Top: Slate-200 (#e2e8f0) */}
-                {
-                    (status !== 'idle' || hasActiveSession) && (
-                        <div style={{
-                            padding: "16px 20px",
-                            borderTop: "1px solid #e2e8f0",
-                            backgroundColor: "#ffffff",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "12px",
-                            animation: "fadeIn 0.6s ease-out"
-                        }}>
-                            <div
-                                onClick={toggleZipExport}
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                    cursor: "pointer",
-                                    padding: "4px 0"
-                                }}
-                            >
-                                <span style={{ fontSize: "14px", color: "#0f172a", fontWeight: "400" }}>
-                                    Download as ZIP
-                                </span>
-
-                                {/* Visual Switch */}
-                                {/* ON: Blue-600 (#2563eb), OFF: Slate-300 (#cbd5e1) */}
-                                <div style={{
-                                    width: "32px",
-                                    height: "18px",
-                                    backgroundColor: isZipExport ? "#2563eb" : "#cbd5e1",
-                                    borderRadius: "10px",
-                                    position: "relative",
-                                    transition: "background-color 0.2s ease"
-                                }}>
-                                    <div style={{
-                                        width: "14px",
-                                        height: "14px",
-                                        backgroundColor: "white",
-                                        borderRadius: "50%",
-                                        position: "absolute",
-                                        top: "2px",
-                                        left: isZipExport ? "16px" : "2px",
-                                        transition: "left 0.2s ease",
-                                        boxShadow: "0 1px 2px rgba(0,0,0,0.2)"
-                                    }} />
-                                </div>
-                            </div>
-
                             <Button
-                                variant="cta"
-                                onClick={handleExport}
+                                variant="secondary"
+                                quiet
+                                onClick={handleOpenWatermark}
                                 style={{
-                                    width: "100%",
-                                    borderRadius: "6px",
-                                    fontSize: "15px",
-                                    textAlign: "center"
+                                    minWidth: "auto",
+                                    height: "32px",
+                                    borderRadius: "4px",
+                                    fontSize: "13px",
+                                    padding: "0 12px"
                                 }}
                             >
-                                Export
+                                <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px" }}>
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    </svg>
+                                    Apply Watermark
+                                </div>
                             </Button>
                         </div>
-                    )
-                }
 
-                {/* WATERMARK DIALOG OVERLAY */}
-                {
-                    isWatermarkDialogOpen && (
-                        <div style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            backgroundColor: "rgba(0,0,0,0.4)",
+                        {/* Bulk Resize Button */}
+                        <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                            <Button
+                                variant="cta"
+                                onClick={() => setIsBulkResizeDialogOpen(true)}
+                                style={{
+                                    height: "32px",
+                                    borderRadius: "4px",
+                                    fontSize: "13px",
+                                    padding: "0 12px"
+                                }}
+                            >
+                                <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                                    <div style={{
+                                        width: "18px",
+                                        height: "18px",
+                                        backgroundColor: "#f472b6",
+                                        borderRadius: "50%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        marginRight: "8px"
+                                    }}>
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
+                                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+                                        </svg>
+                                    </div>
+                                    Bulk Resize
+                                </div>
+                            </Button>
+                        </div>
+                    </div>
+
+                )}
+
+                {/* 3) Smart Naming Card */}
+                {(status !== 'idle' || hasActiveSession) && (
+                    <div
+                        style={{
                             display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            zIndex: 100,
-                            backdropFilter: "blur(2px)"
-                        }}>
-                            <div style={{
-                                width: "280px",
-                                backgroundColor: "white",
-                                borderRadius: "8px",
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                                display: "flex",
-                                flexDirection: "column",
-                                overflow: "hidden"
-                            }}>
-                                {/* Header Border: Slate-200 (#e2e8f0) */}
-                                <div style={{ padding: "16px", borderBottom: "1px solid #e2e8f0" }}>
-                                    <span style={{ fontSize: "16px", fontWeight: "bold", color: "#0f172a" }}>
-                                        Upload Watermark Logo
-                                    </span>
-                                </div>
-
-                                <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
-
-                                    {/* Upload Placeholder */}
-                                    <div
-                                        onClick={handleRangeChange} // Dummy handler
-                                        style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}
-                                    >
-                                        <div style={{
-                                            width: "100%",
-                                            height: "80px",
-                                            border: "2px dashed #cbd5e1",
-                                            borderRadius: "8px",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            backgroundColor: "#f8fafc",
-                                            color: "#64748b",
-                                            fontSize: "12px",
-                                            cursor: "pointer"
-                                        }}>
-                                            Click to browse files
-                                        </div>
-                                        <span style={{ fontSize: "11px", color: "#64748b" }}>
-                                            Upload logo for watermark
-                                        </span>
-                                    </div>
-
-                                    {/* Opacity Slider */}
-                                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                            <span style={{ fontSize: "12px", fontWeight: "600", color: "#0f172a" }}>Opacity</span>
-                                            <span style={{ fontSize: "12px", color: "#64748b" }}>{watermarkOpacity}%</span>
-                                        </div>
-                                        {/* @ts-ignore */}
-                                        <sp-slider min="1" max="100" value={watermarkOpacity} onInput={(e: any) => setWatermarkOpacity(e.target.value)} style={{ width: "100%" }}></sp-slider>
-                                    </div>
-
-                                    {/* Scale Slider */}
-                                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                            <span style={{ fontSize: "12px", fontWeight: "600", color: "#0f172a" }}>Scale</span>
-                                            <span style={{ fontSize: "12px", color: "#64748b" }}>{watermarkScale}</span>
-                                        </div>
-                                        {/* @ts-ignore */}
-                                        <sp-slider min="1" max="100" value={watermarkScale} onInput={(e: any) => setWatermarkScale(e.target.value)} style={{ width: "100%" }}></sp-slider>
-                                    </div>
-
-                                    {/* Position Selection */}
-                                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
-                                        <span style={{ fontSize: "12px", fontWeight: "600", color: "#0f172a" }}>
-                                            Position
-                                        </span>
-                                        <div style={{
-                                            display: "grid",
-                                            gridTemplateColumns: "1fr 1fr",
-                                            gap: "10px"
-                                        }}>
-                                            <SimulatedCheckbox label="Top Left" value="tl" />
-                                            <SimulatedCheckbox label="Top Right" value="tr" />
-                                            <SimulatedCheckbox label="Bottom Left" value="bl" />
-                                            <SimulatedCheckbox label="Bottom Right" value="br" />
-                                        </div>
-                                        <div style={{ marginTop: "4px" }}>
-                                            <SimulatedCheckbox label="Center" value="c" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Footer BG: White (#ffffff), Border: Slate-200 (#e2e8f0) */}
-                                <div style={{
-                                    padding: "16px",
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-                                    gap: "8px",
-                                    backgroundColor: "#ffffff",
-                                    borderTop: "1px solid #e2e8f0"
-                                }}>
-                                    <Button variant="secondary" onClick={handleCloseWatermark}>Cancel</Button>
-                                    <Button variant="cta" onClick={handleApplyWatermark}>Apply</Button>
-                                </div>
+                            flexDirection: "column",
+                            gap: "16px",
+                            border: "1px solid #e2e8f0",
+                            borderRadius: "8px",
+                            padding: "16px",
+                            backgroundColor: "#ffffff",
+                            boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
+                            width: "100%",
+                            maxWidth: "320px"
+                        }}
+                    >
+                        <span style={{ fontSize: "14px", fontWeight: "bold", color: "#0f172a" }}>
+                            Smart Naming
+                        </span>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                <span style={{ fontSize: "11px", color: "#334155" }}>Naming Pattern</span>
+                                <Textfield placeholder="Item Name - 01" style={{ width: "100%" }}></Textfield>
+                                <span style={{ fontSize: "11px", color: "#64748b" }}>For further updates</span>
                             </div>
                         </div>
-                    )
-                }
-                {/* BULK RESIZE DIALOG OVERLAY */}
-                {
-                    isBulkResizeDialogOpen && (
-                        <div style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            backgroundColor: "rgba(0,0,0,0.4)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            zIndex: 100,
-                            backdropFilter: "blur(2px)"
-                        }}>
-                            <div style={{
-                                width: "360px",
-                                width: "360px",
-                                backgroundColor: "white",
-                                borderRadius: "8px",
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                    </div>
+                )}
+
+                {/* 4) Reset All Button */}
+                {(status !== 'idle' || hasActiveSession) && (
+                    <div style={{ width: "100%", maxWidth: "320px", display: "flex", justifyContent: "flex-end" }}>
+                        <Button
+                            variant="negative"
+                            onClick={() => { }} // Dummy handler
+                            style={{
+                                height: "32px",
+                                borderRadius: "4px",
+                                fontSize: "13px"
+                            }}
+                        >
+                            Reset All
+                        </Button>
+                    </div>
+                )}
+            </div>
+
+            {/* STICKY EXPORT FOOTER - REVEAL ONLY AFTER INTERACTION */}
+            {/* Background: White (#ffffff), Border Top: Slate-200 (#e2e8f0) */}
+            {
+                (status !== 'idle' || hasActiveSession) && (
+                    <div style={{
+                        padding: "16px 20px",
+                        borderTop: "1px solid #e2e8f0",
+                        backgroundColor: "#ffffff",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "12px",
+                        animation: "fadeIn 0.6s ease-out"
+                    }}>
+                        <div
+                            onClick={toggleZipExport}
+                            style={{
                                 display: "flex",
-                                flexDirection: "column",
-                                overflow: "hidden"
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                cursor: "pointer",
+                                padding: "4px 0"
+                            }}
+                        >
+                            <span style={{ fontSize: "14px", color: "#0f172a", fontWeight: "400" }}>
+                                Download as ZIP
+                            </span>
+
+                            {/* Visual Switch */}
+                            {/* ON: Blue-600 (#2563eb), OFF: Slate-300 (#cbd5e1) */}
+                            <div style={{
+                                width: "32px",
+                                height: "18px",
+                                backgroundColor: isZipExport ? "#2563eb" : "#cbd5e1",
+                                borderRadius: "10px",
+                                position: "relative",
+                                transition: "background-color 0.2s ease"
                             }}>
-                                {/* Header */}
-                                <div style={{ padding: "16px", borderBottom: "1px solid #e2e8f0" }}>
-                                    <span style={{ fontSize: "16px", fontWeight: "bold", color: "#0f172a" }}>
-                                        Bulk Resize
+                                <div style={{
+                                    width: "14px",
+                                    height: "14px",
+                                    backgroundColor: "white",
+                                    borderRadius: "50%",
+                                    position: "absolute",
+                                    top: "2px",
+                                    left: isZipExport ? "16px" : "2px",
+                                    transition: "left 0.2s ease",
+                                    boxShadow: "0 1px 2px rgba(0,0,0,0.2)"
+                                }} />
+                            </div>
+                        </div>
+
+                        <Button
+                            variant="cta"
+                            onClick={handleExport}
+                            style={{
+                                width: "100%",
+                                borderRadius: "6px",
+                                fontSize: "15px",
+                                textAlign: "center"
+                            }}
+                        >
+                            Export
+                        </Button>
+                    </div>
+                )
+            }
+
+            {/* WATERMARK DIALOG OVERLAY */}
+            {
+                isWatermarkDialogOpen && (
+                    <div style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: "rgba(0,0,0,0.4)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 100,
+                        backdropFilter: "blur(2px)"
+                    }}>
+                        <div style={{
+                            width: "280px",
+                            backgroundColor: "white",
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                            display: "flex",
+                            flexDirection: "column",
+                            overflow: "hidden"
+                        }}>
+                            {/* Header Border: Slate-200 (#e2e8f0) */}
+                            <div style={{ padding: "16px", borderBottom: "1px solid #e2e8f0" }}>
+                                <span style={{ fontSize: "16px", fontWeight: "bold", color: "#0f172a" }}>
+                                    Upload Watermark Logo
+                                </span>
+                            </div>
+
+                            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
+
+                                {/* Upload Placeholder */}
+                                <div
+                                    onClick={handleRangeChange} // Dummy handler
+                                    style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}
+                                >
+                                    <div style={{
+                                        width: "100%",
+                                        height: "80px",
+                                        border: "2px dashed #cbd5e1",
+                                        borderRadius: "8px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        backgroundColor: "#f8fafc",
+                                        color: "#64748b",
+                                        fontSize: "12px",
+                                        cursor: "pointer"
+                                    }}>
+                                        Click to browse files
+                                    </div>
+                                    <span style={{ fontSize: "11px", color: "#64748b" }}>
+                                        Upload logo for watermark
                                     </span>
                                 </div>
 
-                                {/* Content */}
-                                <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
-
-                                    {/* Presets */}
-                                    <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
-                                        {/* Instagram Card */}
-                                        <div
-                                            <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
-                                            {/* Instagram Card */}
-                                            <div
-                                                onClick={handlePresetIG}
-                                                style={{
-                                                    width: "100px",
-                                                    padding: "16px 8px",
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    gap: "8px",
-                                                    border: `2px solid ${selectedPreset === "instagram" ? "#2563eb" : "#e2e8f0"}`,
-                                                    borderRadius: "8px",
-                                                    backgroundColor: selectedPreset === "instagram" ? "#eff6ff" : "white",
-                                                    cursor: "pointer",
-                                                    transition: "all 0.2s ease"
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    if (selectedPreset !== "instagram") e.currentTarget.style.borderColor = "#cbd5e1";
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    if (selectedPreset !== "instagram") e.currentTarget.style.borderColor = "#e2e8f0";
-                                                }}
-                                            >
-                                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={selectedPreset === "instagram" ? "#2563eb" : "#334155"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                                                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                                                </svg>
-                                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-                                                    <span style={{
-                                                        fontSize: "12px",
-                                                        fontWeight: "bold",
-                                                        color: selectedPreset === "instagram" ? "#1e40af" : "#334155"
-                                                    }}>
-                                                        Instagram
-                                                    </span>
-                                                    <span style={{ fontSize: "10px", color: "#64748b" }}>1080 × 1080</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Facebook Card */}
-                                            <div
-                                                onClick={handlePresetFB}
-                                                style={{
-                                                    width: "100px",
-                                                    padding: "16px 8px",
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    gap: "8px",
-                                                    border: `2px solid ${selectedPreset === "facebook" ? "#2563eb" : "#e2e8f0"}`,
-                                                    borderRadius: "8px",
-                                                    backgroundColor: selectedPreset === "facebook" ? "#eff6ff" : "white",
-                                                    cursor: "pointer",
-                                                    transition: "all 0.2s ease"
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    if (selectedPreset !== "facebook") e.currentTarget.style.borderColor = "#cbd5e1";
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    if (selectedPreset !== "facebook") e.currentTarget.style.borderColor = "#e2e8f0";
-                                                }}
-                                            >
-                                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={selectedPreset === "facebook" ? "#2563eb" : "#334155"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-                                                </svg>
-                                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-                                                    <span style={{
-                                                        fontSize: "12px",
-                                                        fontWeight: "bold",
-                                                        color: selectedPreset === "facebook" ? "#1e40af" : "#334155"
-                                                    }}>
-                                                        Facebook
-                                                    </span>
-                                                    <span style={{ fontSize: "10px", color: "#64748b" }}>1200 × 630</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <span style={{ fontSize: "14px", color: "#64748b", textAlign: "center", fontWeight: "500" }}>
-                                            or
-                                            <span style={{ fontSize: "14px", color: "#64748b", textAlign: "center", fontWeight: "500" }}>
-                                                or
-                                            </span>
-
-                                            {/* Dimensions */}
-                                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                                                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                                                    <span style={{ fontSize: "11px", color: "#334155" }}>Width (px)</span>
-                                                    <Textfield
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        value={bulkWidth}
-                                                        placeholder="1080"
-                                                        style={{ width: "100%" }}
-                                                        onInput={(e: any) => { setBulkWidth(e.target.value); setSelectedPreset(null); }}
-                                                    ></Textfield>
-                                                    <Textfield
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        value={bulkWidth}
-                                                        placeholder="1080"
-                                                        style={{ width: "100%" }}
-                                                        onInput={(e: any) => { setBulkWidth(e.target.value); setSelectedPreset(null); }}
-                                                    ></Textfield>
-                                                </div>
-                                                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                                                    <span style={{ fontSize: "11px", color: "#334155" }}>Height (px)</span>
-                                                    <Textfield
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        value={bulkHeight}
-                                                        placeholder="1080"
-                                                        style={{ width: "100%" }}
-                                                        onInput={(e: any) => { setBulkHeight(e.target.value); setSelectedPreset(null); }}
-                                                    ></Textfield>
-                                                    <Textfield
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        value={bulkHeight}
-                                                        placeholder="1080"
-                                                        style={{ width: "100%" }}
-                                                        onInput={(e: any) => { setBulkHeight(e.target.value); setSelectedPreset(null); }}
-                                                    ></Textfield>
-                                                </div>
-                                            </div>
+                                {/* Opacity Slider */}
+                                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                        <span style={{ fontSize: "12px", fontWeight: "600", color: "#0f172a" }}>Opacity</span>
+                                        <span style={{ fontSize: "12px", color: "#64748b" }}>{watermarkOpacity}%</span>
                                     </div>
+                                    {/* @ts-ignore */}
+                                    <sp-slider min="1" max="100" value={watermarkOpacity} onInput={(e: any) => setWatermarkOpacity(e.target.value)} style={{ width: "100%" }}></sp-slider>
+                                </div>
 
-                                    {/* Footer */}
+                                {/* Scale Slider */}
+                                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                        <span style={{ fontSize: "12px", fontWeight: "600", color: "#0f172a" }}>Scale</span>
+                                        <span style={{ fontSize: "12px", color: "#64748b" }}>{watermarkScale}</span>
+                                    </div>
+                                    {/* @ts-ignore */}
+                                    <sp-slider min="1" max="100" value={watermarkScale} onInput={(e: any) => setWatermarkScale(e.target.value)} style={{ width: "100%" }}></sp-slider>
+                                </div>
+
+                                {/* Position Selection */}
+                                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
+                                    <span style={{ fontSize: "12px", fontWeight: "600", color: "#0f172a" }}>
+                                        Position
+                                    </span>
                                     <div style={{
-                                        padding: "16px",
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                        gap: "8px",
-                                        backgroundColor: "#ffffff",
-                                        borderTop: "1px solid #e2e8f0"
+                                        display: "grid",
+                                        gridTemplateColumns: "1fr 1fr",
+                                        gap: "10px"
                                     }}>
-                                        <Button variant="secondary" onClick={() => setIsBulkResizeDialogOpen(false)}>Cancel</Button>
-                                        <Button variant="cta" onClick={() => setIsBulkResizeDialogOpen(false)}>Apply</Button>
+                                        <SimulatedCheckbox label="Top Left" value="tl" />
+                                        <SimulatedCheckbox label="Top Right" value="tr" />
+                                        <SimulatedCheckbox label="Bottom Left" value="bl" />
+                                        <SimulatedCheckbox label="Bottom Right" value="br" />
+                                    </div>
+                                    <div style={{ marginTop: "4px" }}>
+                                        <SimulatedCheckbox label="Center" value="c" />
                                     </div>
                                 </div>
                             </div>
-                )}
-                        </Theme>
-                    );
+
+                            {/* Footer BG: White (#ffffff), Border: Slate-200 (#e2e8f0) */}
+                            <div style={{
+                                padding: "16px",
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                gap: "8px",
+                                backgroundColor: "#ffffff",
+                                borderTop: "1px solid #e2e8f0"
+                            }}>
+                                <Button variant="secondary" onClick={handleCloseWatermark}>Cancel</Button>
+                                <Button variant="cta" onClick={handleApplyWatermark}>Apply</Button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+            {/* BULK RESIZE DIALOG OVERLAY */}
+            {
+                isBulkResizeDialogOpen && (
+                    <div style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: "rgba(0,0,0,0.4)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 100,
+                        backdropFilter: "blur(2px)"
+                    }}>
+                        <div style={{
+                            width: "360px",
+                            backgroundColor: "white",
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                            display: "flex",
+                            flexDirection: "column",
+                            overflow: "hidden"
+                        }}>
+                            {/* Header */}
+                            <div style={{ padding: "16px", borderBottom: "1px solid #e2e8f0" }}>
+                                <span style={{ fontSize: "16px", fontWeight: "bold", color: "#0f172a" }}>
+                                    Bulk Resize
+                                </span>
+                            </div>
+
+                            {/* Content */}
+                            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
+
+                                {/* Presets */}
+                                <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
+                                    {/* Instagram Card */}
+                                    <div
+                                        onClick={handlePresetIG}
+                                        style={{
+                                            width: "100px",
+                                            padding: "16px 8px",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: "8px",
+                                            border: `2px solid ${selectedPreset === "instagram" ? "#2563eb" : "#e2e8f0"}`,
+                                            borderRadius: "8px",
+                                            backgroundColor: selectedPreset === "instagram" ? "#eff6ff" : "white",
+                                            cursor: "pointer",
+                                            transition: "all 0.2s ease"
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (selectedPreset !== "instagram") e.currentTarget.style.borderColor = "#cbd5e1";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (selectedPreset !== "instagram") e.currentTarget.style.borderColor = "#e2e8f0";
+                                        }}
+                                    >
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={selectedPreset === "instagram" ? "#2563eb" : "#334155"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                        </svg>
+                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                                            <span style={{
+                                                fontSize: "12px",
+                                                fontWeight: "bold",
+                                                color: selectedPreset === "instagram" ? "#1e40af" : "#334155"
+                                            }}>
+                                                Instagram
+                                            </span>
+                                            <span style={{ fontSize: "10px", color: "#64748b" }}>1080 × 1080</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Facebook Card */}
+                                    <div
+                                        onClick={handlePresetFB}
+                                        style={{
+                                            width: "100px",
+                                            padding: "16px 8px",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: "8px",
+                                            border: `2px solid ${selectedPreset === "facebook" ? "#2563eb" : "#e2e8f0"}`,
+                                            borderRadius: "8px",
+                                            backgroundColor: selectedPreset === "facebook" ? "#eff6ff" : "white",
+                                            cursor: "pointer",
+                                            transition: "all 0.2s ease"
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (selectedPreset !== "facebook") e.currentTarget.style.borderColor = "#cbd5e1";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (selectedPreset !== "facebook") e.currentTarget.style.borderColor = "#e2e8f0";
+                                        }}
+                                    >
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={selectedPreset === "facebook" ? "#2563eb" : "#334155"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                                        </svg>
+                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                                            <span style={{
+                                                fontSize: "12px",
+                                                fontWeight: "bold",
+                                                color: selectedPreset === "facebook" ? "#1e40af" : "#334155"
+                                            }}>
+                                                Facebook
+                                            </span>
+                                            <span style={{ fontSize: "10px", color: "#64748b" }}>1200 × 630</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <span style={{ fontSize: "14px", color: "#64748b", textAlign: "center", fontWeight: "500" }}>
+                                    or
+                                </span>
+
+                                {/* Dimensions */}
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                        <span style={{ fontSize: "11px", color: "#334155" }}>Width (px)</span>
+                                        <Textfield
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={bulkWidth}
+                                            placeholder="1080"
+                                            style={{ width: "100%" }}
+                                            onInput={(e: any) => { setBulkWidth(e.target.value); setSelectedPreset(null); }}
+                                        ></Textfield>
+                                    </div>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                        <span style={{ fontSize: "11px", color: "#334155" }}>Height (px)</span>
+                                        <Textfield
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={bulkHeight}
+                                            placeholder="1080"
+                                            style={{ width: "100%" }}
+                                            onInput={(e: any) => { setBulkHeight(e.target.value); setSelectedPreset(null); }}
+                                        ></Textfield>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div style={{
+                                padding: "16px",
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                gap: "8px",
+                                backgroundColor: "#ffffff",
+                                borderTop: "1px solid #e2e8f0"
+                            }}>
+                                <Button variant="secondary" onClick={() => setIsBulkResizeDialogOpen(false)}>Cancel</Button>
+                                <Button variant="cta" onClick={() => setIsBulkResizeDialogOpen(false)}>Apply</Button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        </Theme >
+    );
 };
 
-                export default App;
+export default App;
