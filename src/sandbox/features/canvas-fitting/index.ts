@@ -35,98 +35,175 @@ export async function fitToCanvas(fitMode: FitMode): Promise<void> {
                         const container = child as MediaContainerNode;
                         
                         console.log(`[Sandbox] Applying ${fitMode} to container on page "${page.name || 'unnamed'}"`);
+                        
+                        // Get initial container state for logging
+                        const initialBounds = container.boundsLocal;
+                        console.log(`[Sandbox] Initial container size: ${initialBounds.width}x${initialBounds.height}`);
 
-                        // Alternative approach: Use the experimental resize API if available,
-                        // but wrap in try-catch to handle cases where experimentalApis flag isn't recognized
+                        // Get original media dimensions (preserve aspect ratio - no cropping)
+                        const maskShape = container.maskShape;
+                        const mediaRect = container.mediaRectangle;
+                        const mediaWidth = mediaRect.width;
+                        const mediaHeight = mediaRect.height;
+                        const mediaAspectRatio = mediaWidth / mediaHeight;
+                        const artboardAspectRatio = artboardWidth / artboardHeight;
+                        
+                        console.log(`[Sandbox] Media dimensions: ${mediaWidth}x${mediaHeight}, aspect ratio: ${mediaAspectRatio.toFixed(2)}`);
+                        console.log(`[Sandbox] Artboard dimensions: ${artboardWidth}x${artboardHeight}, aspect ratio: ${artboardAspectRatio.toFixed(2)}`);
+                        
+                        // Calculate target container size based on fit mode
+                        // Always use proportional scaling to preserve aspect ratio and ALL image data
+                        let targetWidth: number;
+                        let targetHeight: number;
+                        
+                        if (fitMode === "contain") {
+                            // Contain: Shrinks or grows until entire image fits inside the box
+                            // Image fits within artboard, may have empty space, NO CROPPING
+                            if (mediaAspectRatio > artboardAspectRatio) {
+                                // Media is wider - fit to width (height will be smaller)
+                                targetWidth = artboardWidth;
+                                targetHeight = artboardWidth / mediaAspectRatio;
+                            } else {
+                                // Media is taller - fit to height (width will be smaller)
+                                targetHeight = artboardHeight;
+                                targetWidth = artboardHeight * mediaAspectRatio;
+                            }
+                            
+                            console.log(`[Sandbox] Contain mode - scaling to fit within: ${targetWidth.toFixed(0)}x${targetHeight.toFixed(0)}`);
+                        } else {
+                            // Fill: Grows until entire canvas is covered
+                            // Implementation: If document height > width, make image height = document height
+                            //                If document height < width, make image width = document width
+                            // Maintain aspect ratio and center the image
+                            
+                            console.log(`[Sandbox] Fill mode - document: ${artboardWidth}x${artboardHeight}`);
+                            console.log(`[Sandbox] Fill mode - media aspect ratio: ${mediaAspectRatio.toFixed(2)}`);
+                            console.log(`[Sandbox] Fill mode - checking: artboardHeight (${artboardHeight}) > artboardWidth (${artboardWidth})? ${artboardHeight > artboardWidth}`);
+                            
+                            if (artboardHeight > artboardWidth) {
+                                // Document height > width: make image height = document height
+                                targetHeight = artboardHeight;
+                                // Scale width proportionally to maintain aspect ratio
+                                targetWidth = artboardHeight * mediaAspectRatio;
+                                console.log(`[Sandbox] Fill mode - height > width: setting height to ${targetHeight}, width to ${targetWidth.toFixed(0)}`);
+                            } else {
+                                // Document height <= width: make image width = document width
+                                targetWidth = artboardWidth;
+                                // Scale height proportionally to maintain aspect ratio
+                                targetHeight = artboardWidth / mediaAspectRatio;
+                                console.log(`[Sandbox] Fill mode - height <= width: setting width to ${targetWidth}, height to ${targetHeight.toFixed(0)}`);
+                            }
+                            
+                            console.log(`[Sandbox] Fill mode - final target: ${targetWidth.toFixed(0)}x${targetHeight.toFixed(0)} (maintains aspect ratio ${mediaAspectRatio.toFixed(2)})`);
+                        }
+                        
+                        // Resize container using proportional behavior - preserves ALL image data, no cropping
+                        // IMPORTANT: When using proportional, only provide width OR height, not both
                         try {
-                            // Cast to Node to access resize method (experimental API)
                             const containerNode = container as unknown as Node & {
                                 resize: (options: {
-                                    width: number;
-                                    height: number;
+                                    width?: number;
+                                    height?: number;
                                     behavior: "contain" | "cover" | "proportional";
                                     avoidScalingVisualDetailsIfPossible: boolean;
                                 }) => void;
                             };
                             
-                            // Apply fit mode using resize API
+                            console.log(`[Sandbox] Resizing container to ${targetWidth.toFixed(0)}x${targetHeight.toFixed(0)} with proportional behavior`);
+                            
+                            // With proportional behavior, only provide one dimension (the one that determines the scale)
+                            // For fill mode: use the dimension that matches the document size
+                            // For contain mode: use the dimension that matches the document size
+                            let resizeOptions: {
+                                width?: number;
+                                height?: number;
+                                behavior: "proportional";
+                                avoidScalingVisualDetailsIfPossible: boolean;
+                            };
+                            
                             if (fitMode === "fill") {
-                                containerNode.resize({
-                                    width: artboardWidth,
-                                    height: artboardHeight,
-                                    behavior: "cover",
-                                    avoidScalingVisualDetailsIfPossible: true
-                                });
+                                if (artboardHeight > artboardWidth) {
+                                    // Fill: height = document height, so provide height
+                                    resizeOptions = {
+                                        height: targetHeight,
+                                        behavior: "proportional",
+                                        avoidScalingVisualDetailsIfPossible: true
+                                    };
+                                } else {
+                                    // Fill: width = document width, so provide width
+                                    resizeOptions = {
+                                        width: targetWidth,
+                                        behavior: "proportional",
+                                        avoidScalingVisualDetailsIfPossible: true
+                                    };
+                                }
                             } else {
-                                containerNode.resize({
-                                    width: artboardWidth,
-                                    height: artboardHeight,
-                                    behavior: "contain",
-                                    avoidScalingVisualDetailsIfPossible: true
-                                });
+                                // Contain mode
+                                if (mediaAspectRatio > artboardAspectRatio) {
+                                    // Contain: width = document width, so provide width
+                                    resizeOptions = {
+                                        width: targetWidth,
+                                        behavior: "proportional",
+                                        avoidScalingVisualDetailsIfPossible: true
+                                    };
+                                } else {
+                                    // Contain: height = document height, so provide height
+                                    resizeOptions = {
+                                        height: targetHeight,
+                                        behavior: "proportional",
+                                        avoidScalingVisualDetailsIfPossible: true
+                                    };
+                                }
                             }
                             
-                            // Center the container on the artboard after resizing
+                            containerNode.resize(resizeOptions);
+                            
+                            // Get bounds after resize
+                            const containerBounds = container.boundsLocal;
+                            console.log(`[Sandbox] After resize - container: ${containerBounds.width.toFixed(0)}x${containerBounds.height.toFixed(0)}`);
+                            
+                            // Verify the resize worked
+                            if (Math.abs(containerBounds.width - targetWidth) > 1 || Math.abs(containerBounds.height - targetHeight) > 1) {
+                                console.warn(`[Sandbox] Resize didn't match target! Expected: ${targetWidth.toFixed(0)}x${targetHeight.toFixed(0)}, Got: ${containerBounds.width.toFixed(0)}x${containerBounds.height.toFixed(0)}`);
+                            }
+                            
+                            // Set maskShape AFTER resize for fill mode (clips visible area to artboard)
+                            if (fitMode === "fill") {
+                                if ('width' in maskShape && 'height' in maskShape) {
+                                    (maskShape as any).width = artboardWidth;
+                                    (maskShape as any).height = artboardHeight;
+                                    console.log(`[Sandbox] Set maskShape to ${artboardWidth}x${artboardHeight} to clip visible area`);
+                                }
+                            } else {
+                                // For contain, set maskShape to match container size (or artboard)
+                                if ('width' in maskShape && 'height' in maskShape) {
+                                    (maskShape as any).width = artboardWidth;
+                                    (maskShape as any).height = artboardHeight;
+                                }
+                            }
+                            
+                            // Always center the container on the artboard at the end
+                            // Use the actual container bounds after resize to calculate center position
+                            const finalBounds = container.boundsLocal;
+                            const centerX = (artboardWidth - finalBounds.width) / 2;
+                            const centerY = (artboardHeight - finalBounds.height) / 2;
+                            
+                            container.translation = {
+                                x: centerX,
+                                y: centerY
+                            };
+                            
+                            console.log(`[Sandbox] Container centered at (${centerX.toFixed(2)}, ${centerY.toFixed(2)})`);
+                            console.log(`[Sandbox] Artboard: ${artboardWidth}x${artboardHeight}, Container: ${finalBounds.width.toFixed(0)}x${finalBounds.height.toFixed(0)}`);
+                            console.log(`[Sandbox] ALL image data is preserved, maskShape only clips visibility`);
+                        } catch (resizeError) {
+                            console.error(`[Sandbox] Resize API failed:`, resizeError);
+                            // If resize fails, at least center the container
                             const containerBounds = container.boundsLocal;
                             container.translation = {
                                 x: (artboardWidth - containerBounds.width) / 2,
                                 y: (artboardHeight - containerBounds.height) / 2
                             };
-                        } catch (resizeError) {
-                            // Fallback: Manually adjust maskShape and positioning
-                            console.warn(`[Sandbox] Resize API failed, using fallback method:`, resizeError);
-                            
-                            const maskShape = container.maskShape;
-                            const mediaRect = container.mediaRectangle;
-                            const mediaWidth = mediaRect.width;
-                            const mediaHeight = mediaRect.height;
-                            const mediaAspectRatio = mediaWidth / mediaHeight;
-                            const artboardAspectRatio = artboardWidth / artboardHeight;
-                            
-                            // Resize maskShape to artboard size (controls visible bounds)
-                            if ('width' in maskShape && 'height' in maskShape) {
-                                (maskShape as any).width = artboardWidth;
-                                (maskShape as any).height = artboardHeight;
-                            }
-                            
-                            // Calculate media position for fill/contain
-                            let mediaOffsetX = 0;
-                            let mediaOffsetY = 0;
-                            
-                            if (fitMode === "fill") {
-                                // Fill: scale media to cover artboard, center excess
-                                if (mediaAspectRatio > artboardAspectRatio) {
-                                    // Media wider - scale to height, center horizontally
-                                    const scaledWidth = artboardHeight * mediaAspectRatio;
-                                    mediaOffsetX = (artboardWidth - scaledWidth) / 2;
-                                } else {
-                                    // Media taller - scale to width, center vertically
-                                    const scaledHeight = artboardWidth / mediaAspectRatio;
-                                    mediaOffsetY = (artboardHeight - scaledHeight) / 2;
-                                }
-                            } else {
-                                // Contain: scale media to fit, center if smaller
-                                if (mediaAspectRatio > artboardAspectRatio) {
-                                    // Media wider - fit to width, center vertically
-                                    const scaledHeight = artboardWidth / mediaAspectRatio;
-                                    mediaOffsetY = (artboardHeight - scaledHeight) / 2;
-                                } else {
-                                    // Media taller - fit to height, center horizontally
-                                    const scaledWidth = artboardHeight * mediaAspectRatio;
-                                    mediaOffsetX = (artboardWidth - scaledWidth) / 2;
-                                }
-                            }
-                            
-                            // Position container at origin (maskShape is at container origin)
-                            container.translation = { x: 0, y: 0 };
-                            
-                            // Adjust media rectangle position
-                            if (mediaRect.translation) {
-                                mediaRect.translation = {
-                                    x: mediaOffsetX,
-                                    y: mediaOffsetY
-                                };
-                            }
                         }
                     }
                 }
