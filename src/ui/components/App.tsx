@@ -466,14 +466,15 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 Range
                             </span>
 
-                            <div style={{ display: "flex", gap: "12px" }}>
-                                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
+                            <div style={{ display: "flex", gap: "24px" }}>
+                                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>From</span>
                                     <input
                                         type="number"
                                         value={rangeStart}
                                         style={{
                                             width: "100%",
+                                            boxSizing: "border-box",
                                             padding: "8px",
                                             border: "1px solid var(--spectrum-global-color-gray-300)",
                                             borderRadius: "4px",
@@ -482,13 +483,14 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                         onChange={(e) => handleRangeChange("start", e.target.value)}
                                     />
                                 </div>
-                                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
+                                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>To</span>
                                     <input
                                         type="number"
                                         value={rangeEnd}
                                         style={{
                                             width: "100%",
+                                            boxSizing: "border-box",
                                             padding: "8px",
                                             border: "1px solid var(--spectrum-global-color-gray-300)",
                                             borderRadius: "4px",
@@ -811,7 +813,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                         <span style={{ fontSize: "12px", color: "#64748b" }}>{watermarkOpacity}%</span>
                                     </div>
                                     {/* @ts-ignore */}
-                                    <sp-slider min="1" max="100" value={watermarkOpacity} onInput={(e: any) => setWatermarkOpacity(e.target.value)} style={{ width: "100%" }}></sp-slider>
+                                    <Slider min="1" max="100" value={watermarkOpacity} onInput={(e: any) => setWatermarkOpacity(e.target.value)} style={{ width: "100%" }} labelVisibility="text"></Slider>
                                 </div>
 
                                 {/* Scale Slider */}
@@ -821,7 +823,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                         <span style={{ fontSize: "12px", color: "#64748b" }}>{watermarkScale}</span>
                                     </div>
                                     {/* @ts-ignore */}
-                                    <sp-slider min="1" max="100" value={watermarkScale} onInput={(e: any) => setWatermarkScale(e.target.value)} style={{ width: "100%" }}></sp-slider>
+                                    <Slider min="1" max="100" value={watermarkScale} onInput={(e: any) => setWatermarkScale(e.target.value)} style={{ width: "100%" }} labelVisibility="text"></Slider>
                                 </div>
 
                                 {/* Position Selection */}
