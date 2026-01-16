@@ -21,18 +21,24 @@ export const ImportTool: React.FC<ImportToolProps> = ({ sandboxProxy, addOnUISdk
             console.log(`[UI] Current origin: ${window.location.origin}`);
 
             // Determine base path - get the directory where index.html is located
+            // Adobe Express serves add-ons from a path like: /{testId}/index.html
             const currentUrl = new URL(window.location.href);
-            const baseUrl = currentUrl.href.substring(0, currentUrl.href.lastIndexOf('/'));
+            const pathname = currentUrl.pathname;
+            // Extract the base path (everything before index.html)
+            const basePathFromUrl = pathname.substring(0, pathname.lastIndexOf('/'));
             const testFileName = "stress-test-1.jpg";
             
-            // Build possible paths - prioritize relative paths
+            // Build possible paths - account for testId in URL path
             const possibleBasePaths = [
-                // Relative to current HTML file (most likely to work)
-                `${baseUrl}/demo-assets`,
-                // Absolute paths
+                // Relative to current HTML file location (includes testId path)
+                `${currentUrl.origin}${basePathFromUrl}/demo-assets`,
+                // Direct path from origin (no testId)
                 `${window.location.origin}/demo-assets`,
-                // Try with and without trailing slash variations
-                `${baseUrl}/demo-assets/`,
+                // Relative path variations
+                `./demo-assets`,
+                `demo-assets`,
+                // Try with trailing slashes
+                `${currentUrl.origin}${basePathFromUrl}/demo-assets/`,
                 `${window.location.origin}/demo-assets/`,
             ];
 
