@@ -1,0 +1,22 @@
+{
+    "testId": "2cdb00e6-af6c-457d-98c8-d2a56467c76d",
+    "name": "Bulk Media Express",
+    "version": "1.0.0",
+    "manifestVersion": 2,
+    "requirements": {
+        "apps": [
+            {
+                "name": "Express",
+                "apiVersion": 1
+            }
+        ]
+    },
+    "entryPoints": [
+        {
+            "type": "panel",
+            "id": "panel1",
+            "main": "index.html",
+            "documentSandbox": "code.js"
+        }
+    ]
+}

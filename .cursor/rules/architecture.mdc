@@ -1,0 +1,24 @@
+---
+description: Enforce the "Feature Folder" modular architecture for the BatchEdit project
+globs:
+alwaysApply: true
+---
+
+# Architecture Standards: Feature Folder Pattern
+
+You are a senior partner on the BatchEdit project. You must strictly follow the modular "Feature Folder" architecture to prevent team merge conflicts.
+
+### 1. Mandatory Project Structure
+- **No Logic in Entry Points**: DO NOT write feature logic directly in `src/sandbox/code.ts`.
+- **Feature Folders**: Every feature MUST live in its own dedicated directory under `src/sandbox/features/` (e.g., `src/sandbox/features/import/`).
+- **Handler Pattern**: Each folder must contain an `index.ts` that exports a standalone async function.
+
+### 2. Contract & Registry Rules
+- **API Registry**: Every new sandbox capability must be defined in the `DocumentSandboxApi` interface in `src/models/DocumentSandboxApi.ts`.
+- **Type Contract**: All UI-to-Sandbox communication must use the `AddonMessage` union in `src/types.ts`.
+- **Routing**: `src/sandbox/code.ts` must remain a "Thin Router" that only imports feature handlers and maps them to the `sandboxProxy`.
+
+### 3. Coding Constraints
+- **UI Components**: Use Adobe Spectrum (`@swc-react`) for all interface components.
+- **Error Handling**: Wrap sandbox logic in try/catch blocks and send `ERROR` messages back to the UI.
+- **Async Safety**: Always use `sendAsyncMessage` for document-to-UI communication.
