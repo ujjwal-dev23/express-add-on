@@ -53,7 +53,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     // UI state: Watermark Position (Visual placeholders)
     const [watermarkPos, setWatermarkPos] = React.useState<string[]>([]);
 
-    // TODO : Replace with actual values
     // Constants
     const TotalFiles = 250;
 
@@ -166,12 +165,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     };
 
     const toggleZipExport = () => setIsZipExport(!isZipExport);
-
-    // Helper for disabled style
-    const getDisabledStyle = (isDisabled: boolean) => ({
-        opacity: isDisabled ? 0.5 : 1,
-        pointerEvents: isDisabled ? "none" : "auto" as "none" | "auto"
-    });
 
     // Helper: Simulated Checkbox
     // Uses Blue-600 (#2563eb) for checked state, Slate-300 (#cbd5e1) for border
@@ -294,46 +287,46 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 {status === "completed" ? "You can continue adding images" : "Images will be processed instantly"}
                             </span>
                         </div>
-                    </div>
 
-                    <span style={{ fontSize: "11px", color: "#64748b" }}>
-                        Upload JPG or PNG files (Max {TotalFiles})
-                    </span>
+                        <span style={{ fontSize: "11px", color: "#64748b" }}>
+                            Upload JPG or PNG files (Max {TotalFiles})
+                        </span>
 
-                    {/* Progress Status */}
-                    {(status === "uploading" || status === "completed") && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#334155" }}>
-                                <span>{status === "uploading" ? "Uploading files..." : "Files loaded"}</span>
-                                {/* Reset Progress Text */}
-                                <span>{status === "completed" ? "Ready for next upload" : status === "uploading" ? `Uploading ${fileCount} of ${TotalFiles} files` : `${TotalFiles} files uploaded`}</span>
-                            </div>
+                        {/* Progress Status */}
+                        {(status === "uploading" || status === "completed") && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#334155" }}>
+                                    <span>{status === "uploading" ? "Uploading files..." : "Files loaded"}</span>
+                                    {/* Reset Progress Text */}
+                                    <span>{status === "completed" ? "Ready for next upload" : status === "uploading" ? `Uploading ${fileCount} of ${TotalFiles} files` : `${TotalFiles} files uploaded`}</span>
+                                </div>
 
-                            {/* Visual progress bar */}
-                            <div style={{
-                                width: "100%",
-                                height: "6px",
-                                backgroundColor: "#e2e8f0",
-                                borderRadius: "3px",
-                                overflow: "hidden"
-                            }}>
+                                {/* Visual progress bar */}
                                 <div style={{
-                                    width: `${progress}%`,
-                                    height: "100%",
-                                    backgroundColor: status === "completed" ? "var(--spectrum-global-color-green-500)" : "#2563eb",
+                                    width: "100%",
+                                    height: "6px",
+                                    backgroundColor: "#e2e8f0",
                                     borderRadius: "3px",
-                                    transition: "width 0.05s linear, background-color 0.3s"
-                                }}></div>
+                                    overflow: "hidden"
+                                }}>
+                                    <div style={{
+                                        width: `${progress}%`,
+                                        height: "100%",
+                                        backgroundColor: status === "completed" ? "var(--spectrum-global-color-green-500)" : "#2563eb",
+                                        borderRadius: "3px",
+                                        transition: "width 0.05s linear, background-color 0.3s"
+                                    }}></div>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {/* Show "No assets loaded" ONLY if idle and NO session active */}
-                    {status === "idle" && !hasActiveSession && (
-                        <div style={{ fontSize: "12px", color: "#64748b" }}>
-                            No assets loaded
-                        </div>
-                    )}
+                        {/* Show "No assets loaded" ONLY if idle and NO session active */}
+                        {status === "idle" && !hasActiveSession && (
+                            <div style={{ fontSize: "12px", color: "#64748b" }}>
+                                No assets loaded
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* 2) Batch Controls Card */}
