@@ -15,6 +15,7 @@ import "@spectrum-web-components/slider/sp-slider.js";
 // https://opensource.adobe.com/spectrum-web-components/using-swc-react/
 import { Theme } from "@swc-react/theme";
 import { Divider } from "@swc-react/divider";
+import { Button } from "@swc-react/button";
 
 import React from "react";
 import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
@@ -70,25 +71,72 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
         }
     }, [status]);
 
-    // Placeholder handlers
+    // Actual handlers
     const handleStartUpload = () => {
         if (status === "uploading") return;
-        setStatus("uploading");
-        setFileCount(0);
-        setProgress(0);
 
-        let current = 0;
-        const interval = setInterval(() => {
-            current += 5;
-            setFileCount(current);
-            setProgress((current / TotalFiles) * 100);
-
-            if (current >= TotalFiles) {
-                clearInterval(interval);
+        startImageUpload(sandboxProxy, {
+            onStart: () => {
+                setStatus("uploading");
+                setFileCount(0);
+                setProgress(0);
+            },
+            onSuccess: (count) => {
                 setStatus("completed");
-                setHasActiveSession(true); // Enable persistence for other cards
+                setFileCount(count);
+                setProgress(100);
+                setHasActiveSession(true);
+            },
+            onError: (error) => {
+                console.error("Upload failed:", error);
+                setStatus("idle"); // reset on error?
+            },
+            onCancel: () => {
+                if (status !== "completed") setStatus("idle");
             }
-        }, 50);
+        });
+    };
+
+    const handleDrop = async (e: React.DragEvent<HTMLElement>) => {
+        setIsHoveringDrag(false);
+        if (status === "uploading") return;
+
+        if (isValidDrag(e)) {
+            await handleImageDrop(e, sandboxProxy, {
+                onStart: () => {
+                    setStatus("uploading");
+                    setFileCount(0);
+                    setProgress(0);
+                },
+                onSuccess: (count) => {
+                    setStatus("completed");
+                    setFileCount(count);
+                    setProgress(100);
+                    setHasActiveSession(true);
+                },
+                onError: (error) => {
+                    console.error("Drop failed:", error);
+                    setStatus("idle");
+                }
+            });
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLElement>) => {
+        e.preventDefault();
+        if (!isHoveringDrag) setIsHoveringDrag(true);
+    };
+
+    const handleDragLeave = () => {
+        setIsHoveringDrag(false);
+    };
+
+    const handleApplyFitting = async () => {
+        try {
+            await sandboxProxy.fitToCanvas(fittingOption);
+        } catch (e) {
+            console.error("Fit to canvas failed", e);
+        }
     };
 
     // Dummy handlers for UI consistency
@@ -196,6 +244,9 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         onMouseEnter={() => setIsHoveringDrag(true)}
                         onMouseLeave={() => setIsHoveringDrag(false)}
                         onClick={handleStartUpload}
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
                         style={{
                             display: "flex",
                             flexDirection: "column",
@@ -373,7 +424,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 </div>
                                 <Button
                                     variant="primary"
-                                    onClick={() => { }} // Dummy Apply handler
+                                    onClick={handleApplyFitting}
                                     style={{
                                         width: "100%",
                                         height: "32px",
