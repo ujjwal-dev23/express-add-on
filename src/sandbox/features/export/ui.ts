@@ -44,6 +44,8 @@ export const exportAllPages = async (addOnUISdk: AddOnSDKAPI, sandboxProxy: Docu
   return renditions;
 };
 
+import { downloadZip } from "client-zip";
+
 /**
  * Saves the provided renditions to the user's device.
  * @param renditions The renditions to save
@@ -60,11 +62,39 @@ const saveRenditions = (renditions: { blob: Blob, title?: string }[]) => {
 };
 
 /**
+ * Saves the provided renditions as a single ZIP file.
+ * @param renditions The renditions to save
+ */
+const saveAsZip = async (renditions: { blob: Blob, title?: string }[]) => {
+  const files = renditions.map((rendition, index) => ({
+    name: `page-${index + 1}.png`,
+    lastModified: new Date(),
+    input: rendition.blob
+  }));
+
+  const blob = await downloadZip(files).blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "pages.zip";
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+export type ExportFormat = "png" | "zip";
+
+/**
  * Exports and downloads all pages in the document.
  * @param addOnUISdk The Add-on SDK instance
  * @param sandboxProxy The Sandbox Proxy instance
+ * @param format The format to download (png or zip)
  */
-export const downloadAllPages = async (addOnUISdk: AddOnSDKAPI, sandboxProxy: DocumentSandboxApi) => {
+export const downloadAllPages = async (addOnUISdk: AddOnSDKAPI, sandboxProxy: DocumentSandboxApi, format: ExportFormat = "png") => {
   const renditions = await exportAllPages(addOnUISdk, sandboxProxy);
-  saveRenditions(renditions);
+
+  if (format === "zip") {
+    await saveAsZip(renditions);
+  } else {
+    saveRenditions(renditions);
+  }
 };

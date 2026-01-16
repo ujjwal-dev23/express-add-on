@@ -13,12 +13,16 @@ import "./App.css";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 
+import { Switch } from "@swc-react/switch";
+import { useState } from "react";
 import { downloadAllPages } from "../../sandbox/features/export/ui";
 
 const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxProxy: DocumentSandboxApi }) => {
+    const [asZip, setAsZip] = useState(false);
+
     async function handleClick() {
         try {
-            await downloadAllPages(addOnUISdk, sandboxProxy);
+            await downloadAllPages(addOnUISdk, sandboxProxy, asZip ? "zip" : "png");
             console.log("Export and download started");
         } catch (e) {
             console.error("Export failed:", e);
@@ -33,6 +37,11 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                 <Button size="m" onClick={handleClick}>
                     Export All Pages
                 </Button>
+                <div style={{ marginTop: "10px" }}>
+                    <Switch checked={asZip} change={() => setAsZip(!asZip)}>
+                        Download as ZIP
+                    </Switch>
+                </div>
             </div>
         </Theme>
     );
