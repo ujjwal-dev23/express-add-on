@@ -40,16 +40,16 @@ function start(): void {
         importImages: async (images) => {
             await importImages(images);
         },
-        injectWatermark: async (settings) => {
-            await injectWatermark(settings);
+        injectWatermark: async (settings, range) => {
+            await injectWatermark(settings, range);
         },
-        fitToCanvas: async (fitMode) => {
-            await fitToCanvas(fitMode);
+        fitToCanvas: async (fitMode, range) => {
+            await fitToCanvas(fitMode, range);
         },
-        changePageLayout: async (ratio) => {
-            await changePageLayout(ratio);
+        changePageLayout: async (ratio, range) => {
+            await changePageLayout(ratio, range);
         },
-        getPages: async () => getExportablePages(),
+        getPages: async (range) => getExportablePages(range),
         resetAllPages: async () => {
             await resetAllPages();
         }

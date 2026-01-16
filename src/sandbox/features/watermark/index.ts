@@ -6,7 +6,7 @@ import { WatermarkSettings } from "../../../types";
  * 
  * @param settings - WatermarkSettings object containing blob, opacity, scale, and position
  */
-export async function injectWatermark(settings: WatermarkSettings): Promise<void> {
+export async function injectWatermark(settings: WatermarkSettings, range?: { start: number, end: number }): Promise<void> {
     try {
         console.log(`[Sandbox] Starting watermark injection with settings:`, {
             opacity: settings.opacity,
@@ -20,7 +20,8 @@ export async function injectWatermark(settings: WatermarkSettings): Promise<void
         console.log(`[Sandbox] Watermark bitmap loaded`);
 
         // 2. Get all pages in the document
-        const pages = editor.documentRoot.pages;
+        const allPages = editor.documentRoot.pages.toArray();
+        const pages = range ? allPages.slice(range.start - 1, range.end) : allPages;
         let totalWatermarks = 0;
 
         // 3. Perform all document mutations in a single queueAsyncEdit block

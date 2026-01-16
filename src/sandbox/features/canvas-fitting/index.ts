@@ -8,12 +8,13 @@ import { FitMode } from "../../../types";
  * 
  * @param fitMode - Either "fill" (cover) or "contain" (fit within bounds)
  */
-export async function fitToCanvas(fitMode: FitMode): Promise<void> {
+export async function fitToCanvas(fitMode: FitMode, range?: { start: number, end: number }): Promise<void> {
     try {
         console.log(`[Sandbox] Starting fit to canvas: mode=${fitMode}`);
 
         // Get all pages in the document
-        const pages = editor.documentRoot.pages;
+        const allPages = editor.documentRoot.pages.toArray();
+        const pages = range ? allPages.slice(range.start - 1, range.end) : allPages;
         let totalContainers = 0;
 
         // Perform all document mutations in a single queueAsyncEdit block

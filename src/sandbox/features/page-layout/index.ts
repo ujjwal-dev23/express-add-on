@@ -6,7 +6,7 @@ import { PageLayoutSettings } from "../../../types";
  * 
  * @param settings - PageLayoutSettings object containing width and height
  */
-export async function changePageLayout(settings: PageLayoutSettings): Promise<void> {
+export async function changePageLayout(settings: PageLayoutSettings, range?: { start: number, end: number }): Promise<void> {
     try {
         const { width, height } = settings;
         console.log(`[Sandbox] Starting page layout change to dimensions: ${width}x${height}`);
@@ -17,8 +17,9 @@ export async function changePageLayout(settings: PageLayoutSettings): Promise<vo
         }
 
         // Get all pages in the document
-        const pages = editor.documentRoot.pages;
-        
+        const allPages = editor.documentRoot.pages.toArray();
+        const pages = range ? allPages.slice(range.start - 1, range.end) : allPages;
+
         if (pages.length === 0) {
             console.warn("[Sandbox] No pages found in document");
             return;

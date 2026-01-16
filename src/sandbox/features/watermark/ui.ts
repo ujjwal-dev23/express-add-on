@@ -19,12 +19,13 @@ interface InjectWatermarkOptions {
 export const injectWatermark = async (
     sandboxProxy: DocumentSandboxApi,
     settings: WatermarkSettings,
-    options: InjectWatermarkOptions = {}
+    options: InjectWatermarkOptions = {},
+    range?: { start: number, end: number }
 ): Promise<void> => {
     options.onStart?.();
 
     try {
-        await sandboxProxy.injectWatermark(settings);
+        await sandboxProxy.injectWatermark(settings, range);
         options.onSuccess?.();
     } catch (error) {
         console.error("Error injecting watermark:", error);
