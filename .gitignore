@@ -1,6 +1,7 @@
 .DS_Store
 dist/
 node_modules/
+public/
 
 # Do not ignore Agentic IDE rules
 !.cursor/rules/
