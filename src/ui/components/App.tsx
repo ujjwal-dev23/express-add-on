@@ -2,7 +2,7 @@
 // import these spectrum web components modules:
 import "@spectrum-web-components/theme/express/scale-medium.js";
 import "@spectrum-web-components/theme/express/theme-light.js";
-import "@spectrum-web-components/textfield/sp-textfield.js";
+
 import "@spectrum-web-components/divider/sp-divider.js";
 import "@spectrum-web-components/slider/sp-slider.js";
 
@@ -11,6 +11,7 @@ import "@spectrum-web-components/slider/sp-slider.js";
 import { Button } from "@swc-react/button";
 import { Theme } from "@swc-react/theme";
 import { Divider } from "@swc-react/divider";
+import { Textfield } from "@swc-react/textfield";
 
 import React from "react";
 import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
@@ -40,6 +41,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     // UI state: Bulk Resize (Visual placeholders)
     const [bulkWidth, setBulkWidth] = React.useState("");
     const [bulkHeight, setBulkHeight] = React.useState("");
+    const [selectedPreset, setSelectedPreset] = React.useState<"instagram" | "facebook" | null>(null);
 
     // UI state: Watermark Settings
     const [watermarkOpacity, setWatermarkOpacity] = React.useState(100);
@@ -95,11 +97,13 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     const handlePresetIG = () => {
         setBulkWidth("1080");
         setBulkHeight("1350");
+        setSelectedPreset("instagram");
     };
 
     const handlePresetFB = () => {
         setBulkWidth("1200");
         setBulkHeight("630");
+        setSelectedPreset("facebook");
     };
 
     const toggleWatermarkPos = (pos: string) => {
@@ -314,13 +318,11 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             <div style={{ display: "flex", gap: "12px" }}>
                                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>From</span>
-                                    {/* @ts-ignore */}
-                                    <sp-textfield type="number" value="1" style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></sp-textfield>
+                                    <Textfield type="text" inputMode="numeric" value="1" style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></Textfield>
                                 </div>
                                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>To</span>
-                                    {/* @ts-ignore */}
-                                    <sp-textfield type="number" value={`${TotalFiles}`} style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></sp-textfield>
+                                    <Textfield type="text" inputMode="numeric" value={`${TotalFiles}`} style={{ width: "100%" }} onInput={handleRangeChange} onChange={handleRangeChange}></Textfield>
                                 </div>
                             </div>
                         </div>
@@ -364,7 +366,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                     </Button>
                                 </div>
                                 <Button
-                                    variant="primary"
+                                    variant="cta"
                                     onClick={() => { }} // Dummy Apply handler
                                     style={{
                                         width: "100%",
@@ -380,7 +382,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         </div>
 
                         {/* Watermark Button */}
-                        <div style={{ display: "flex", justifyContent: "center" }}>
+                        <div style={{ display: "flex", justifyContent: "flex-start" }}>
                             <Button
                                 variant="secondary"
                                 quiet
@@ -403,7 +405,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         {/* Bulk Resize Button */}
                         <div style={{ display: "flex", justifyContent: "flex-start" }}>
                             <Button
-                                variant="primary"
+                                variant="cta"
                                 onClick={() => setIsBulkResizeDialogOpen(true)}
                                 style={{
                                     height: "32px",
@@ -440,8 +442,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                 <span style={{ fontSize: "11px", color: "#334155" }}>Naming Pattern</span>
-                                {/* @ts-ignore */}
-                                <sp-textfield placeholder="Item Name - 01" style={{ width: "100%" }}></sp-textfield>
+                                <Textfield placeholder="Item Name - 01" style={{ width: "100%" }}></Textfield>
                             </div>
                         </div>
                     </div>
@@ -452,7 +453,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                     <div style={{ width: "100%", maxWidth: "320px", display: "flex", justifyContent: "flex-end" }}>
                         <Button
                             variant="negative"
-                            quiet
                             onClick={() => { }} // Dummy handler
                             style={{
                                 height: "32px",
@@ -666,7 +666,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         backdropFilter: "blur(2px)"
                     }}>
                         <div style={{
-                            width: "280px",
+                            width: "360px",
                             backgroundColor: "white",
                             borderRadius: "8px",
                             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -685,41 +685,109 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
 
                                 {/* Presets */}
-                                <div style={{ display: "flex", gap: "8px" }}>
-                                    <Button
-                                        variant="secondary"
+                                <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
+                                    {/* Instagram Card */}
+                                    <div
                                         onClick={handlePresetIG}
-                                        style={{ flex: 1, flexDirection: "column", height: "auto", padding: "8px 0", gap: "4px" }}
+                                        style={{
+                                            width: "100px",
+                                            padding: "16px 8px",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: "12px",
+                                            border: `2px solid ${selectedPreset === "instagram" ? "#2563eb" : "#e2e8f0"}`,
+                                            borderRadius: "8px",
+                                            backgroundColor: selectedPreset === "instagram" ? "#eff6ff" : "white",
+                                            cursor: "pointer",
+                                            transition: "all 0.2s ease"
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (selectedPreset !== "instagram") e.currentTarget.style.borderColor = "#cbd5e1";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (selectedPreset !== "instagram") e.currentTarget.style.borderColor = "#e2e8f0";
+                                        }}
                                     >
-                                        {/* Simple Icon placeholder */}
-                                        <div style={{ width: "16px", height: "16px", backgroundColor: "#334155", borderRadius: "2px" }}></div>
-                                        <span style={{ fontSize: "10px" }}>Instagram</span>
-                                    </Button>
-                                    <Button
-                                        variant="secondary"
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={selectedPreset === "instagram" ? "#2563eb" : "#334155"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                        </svg>
+                                        <span style={{
+                                            fontSize: "12px",
+                                            fontWeight: selectedPreset === "instagram" ? "600" : "400",
+                                            color: selectedPreset === "instagram" ? "#1e40af" : "#334155"
+                                        }}>
+                                            Instagram
+                                        </span>
+                                    </div>
+
+                                    {/* Facebook Card */}
+                                    <div
                                         onClick={handlePresetFB}
-                                        style={{ flex: 1, flexDirection: "column", height: "auto", padding: "8px 0", gap: "4px" }}
+                                        style={{
+                                            width: "100px",
+                                            padding: "16px 8px",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: "12px",
+                                            border: `2px solid ${selectedPreset === "facebook" ? "#2563eb" : "#e2e8f0"}`,
+                                            borderRadius: "8px",
+                                            backgroundColor: selectedPreset === "facebook" ? "#eff6ff" : "white",
+                                            cursor: "pointer",
+                                            transition: "all 0.2s ease"
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (selectedPreset !== "facebook") e.currentTarget.style.borderColor = "#cbd5e1";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (selectedPreset !== "facebook") e.currentTarget.style.borderColor = "#e2e8f0";
+                                        }}
                                     >
-                                        <div style={{ width: "16px", height: "16px", backgroundColor: "#334155", borderRadius: "2px" }}></div>
-                                        <span style={{ fontSize: "10px" }}>Facebook</span>
-                                    </Button>
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={selectedPreset === "facebook" ? "#2563eb" : "#334155"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                                        </svg>
+                                        <span style={{
+                                            fontSize: "12px",
+                                            fontWeight: selectedPreset === "facebook" ? "600" : "400",
+                                            color: selectedPreset === "facebook" ? "#1e40af" : "#334155"
+                                        }}>
+                                            Facebook
+                                        </span>
+                                    </div>
                                 </div>
 
-                                <span style={{ fontSize: "11px", color: "#64748b", textAlign: "center" }}>
-                                    or Custom
+                                <span style={{ fontSize: "14px", color: "#64748b", textAlign: "center", fontWeight: "500" }}>
+                                    or
                                 </span>
 
                                 {/* Dimensions */}
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                         <span style={{ fontSize: "11px", color: "#334155" }}>Width (px)</span>
-                                        {/* @ts-ignore */}
-                                        <sp-textfield type="number" value={bulkWidth} placeholder="1080" style={{ width: "100%" }} onInput={(e: any) => setBulkWidth(e.target.value)}></sp-textfield>
+                                        <Textfield
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={bulkWidth}
+                                            placeholder="1080"
+                                            style={{ width: "100%" }}
+                                            onInput={(e: any) => { setBulkWidth(e.target.value); setSelectedPreset(null); }}
+                                        ></Textfield>
                                     </div>
                                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                                         <span style={{ fontSize: "11px", color: "#334155" }}>Height (px)</span>
-                                        {/* @ts-ignore */}
-                                        <sp-textfield type="number" value={bulkHeight} placeholder="1080" style={{ width: "100%" }} onInput={(e: any) => setBulkHeight(e.target.value)}></sp-textfield>
+                                        <Textfield
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={bulkHeight}
+                                            placeholder="1080"
+                                            style={{ width: "100%" }}
+                                            onInput={(e: any) => { setBulkHeight(e.target.value); setSelectedPreset(null); }}
+                                        ></Textfield>
                                     </div>
                                 </div>
                             </div>
