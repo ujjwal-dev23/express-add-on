@@ -3,6 +3,7 @@ import { editor } from "express-document-sdk";
 import { DocumentSandboxApi } from "../models/DocumentSandboxApi";
 import { importImages } from "./features/import";
 import { fitToCanvas } from "./features/canvas-fitting";
+import { changePageLayout } from "./features/page-layout";
 
 // Get the document sandbox runtime.
 const { runtime } = addOnSandboxSdk.instance;
@@ -37,6 +38,9 @@ function start(): void {
         },
         fitToCanvas: async (fitMode) => {
             await fitToCanvas(fitMode);
+        },
+        changePageLayout: async (ratio) => {
+            await changePageLayout(ratio);
         }
     };
 
