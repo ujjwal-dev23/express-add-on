@@ -32,45 +32,37 @@ export async function injectWatermark(settings: WatermarkSettings): Promise<void
 
                 console.log(`[Sandbox] Injecting watermark on page "${page.name || 'unnamed'}"`);
 
-                // Create watermark image container
-                const watermarkContainer = editor.createImageContainer(watermarkBitmap);
+                // Get bitmap dimensions for calculating scaled size
+                const bitmapWidth = watermarkBitmap.width;
+                const bitmapHeight = watermarkBitmap.height;
+                const bitmapAspectRatio = bitmapWidth / bitmapHeight;
 
-                // Get the container and artboard dimensions
-                const containerBounds = watermarkContainer.boundsLocal;
+                // Calculate scaled dimensions maintaining aspect ratio
+                const scaledWidth = bitmapWidth * settings.scale;
+                const scaledHeight = bitmapHeight * settings.scale;
+
+                console.log(`[Sandbox] Bitmap size: ${bitmapWidth}x${bitmapHeight}, scale: ${settings.scale}`);
+                console.log(`[Sandbox] Creating watermark container at size: ${scaledWidth.toFixed(0)}x${scaledHeight.toFixed(0)}`);
+
+                // Create watermark image container with initialSize to set the scale
+                // initialSize must maintain the same aspect ratio as the bitmap
+                const watermarkContainer = editor.createImageContainer(watermarkBitmap, {
+                    initialSize: {
+                        width: scaledWidth,
+                        height: scaledHeight
+                    }
+                });
+
+                // Get artboard dimensions
                 const artboardWidth = artboard.width;
                 const artboardHeight = artboard.height;
 
-                // Calculate scaled dimensions
-                const scaledWidth = containerBounds.width * settings.scale;
-                const scaledHeight = containerBounds.height * settings.scale;
-
-                // Resize the watermark container to the scaled size
-                // Using the experimental resize API with proportional behavior
-                try {
-                    const containerNode = watermarkContainer as unknown as {
-                        resize: (options: {
-                            width?: number;
-                            height?: number;
-                            behavior: "proportional";
-                            avoidScalingVisualDetailsIfPossible: boolean;
-                        }) => void;
-                    };
-
-                    // Resize proportionally using width (will maintain aspect ratio)
-                    containerNode.resize({
-                        width: scaledWidth,
-                        behavior: "proportional",
-                        avoidScalingVisualDetailsIfPossible: true
-                    });
-
-                    // Wait a bit for resize to take effect, then get updated bounds
-                    // Note: resize is synchronous, but bounds might update slightly after
-                } catch (resizeError) {
-                    console.warn("[Sandbox] Could not resize watermark container, using original size:", resizeError);
-                }
-
-                // Get final bounds after resize (or original if resize failed)
+                // Get final container bounds (should match initialSize)
                 const finalBounds = watermarkContainer.boundsLocal;
+                console.log(`[Sandbox] Watermark container created at size: ${finalBounds.width.toFixed(0)}x${finalBounds.height.toFixed(0)}`);
+
+                // Append to artboard
+                artboard.children.append(watermarkContainer);
 
                 // Calculate position based on the position parameter
                 let positionX: number;
@@ -114,9 +106,6 @@ export async function injectWatermark(settings: WatermarkSettings): Promise<void
                 // Set opacity (0.0 to 1.0)
                 const clampedOpacity = Math.max(0, Math.min(1, settings.opacity));
                 watermarkContainer.opacity = clampedOpacity;
-
-                // Append the watermark to the artboard
-                artboard.children.append(watermarkContainer);
 
                 totalWatermarks++;
                 console.log(`[Sandbox] Watermark injected at position (${positionX.toFixed(0)}, ${positionY.toFixed(0)}) with opacity ${clampedOpacity}`);
