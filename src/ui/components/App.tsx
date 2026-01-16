@@ -585,6 +585,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 variant="cta"
                                 onClick={() => setIsBulkResizeDialogOpen(true)}
                                 style={{
+                                    minWidth: "auto",
                                     height: "32px",
                                     borderRadius: "4px",
                                     fontSize: "13px",
