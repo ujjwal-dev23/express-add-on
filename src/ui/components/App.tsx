@@ -17,12 +17,11 @@ import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 import "./App.css";
 import { startImageUpload, handleImageDrop, isValidDrag } from "../../sandbox/features/import/ui";
 import { resetAllPages as resetAllPagesHelper } from "../../sandbox/features/reset/ui";
-import { WatermarkTool } from "../../sandbox/features/watermark/ui/WatermarkTool";
-
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
-import { ImportTool } from "../../sandbox/features/import/ui/ImportTool";
-import { CanvasFittingTool } from "../../sandbox/features/canvas-fitting/ui/CanvasFittingTool";
-import { downloadAllPages } from "../../sandbox/features/export/ui";
+import { downloadAllPages, ExportFormat } from "../../sandbox/features/export/ui";
+import { changePageLayout } from "../../sandbox/features/page-layout/ui";
+import { injectWatermark } from "../../sandbox/features/watermark/ui";
+import { WatermarkSettings } from "../../types";
 
 const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxProxy: DocumentSandboxApi }) => {
 
@@ -49,11 +48,15 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     const [selectedPreset, setSelectedPreset] = React.useState<"instagram" | "facebook" | null>(null);
 
     // UI state: Watermark Settings
-    const [watermarkOpacity, setWatermarkOpacity] = React.useState(100);
-    const [watermarkScale, setWatermarkScale] = React.useState(100);
+    const [watermarkOpacity, setWatermarkOpacity] = React.useState(50);
+    const [watermarkScale, setWatermarkScale] = React.useState(30);
+    const [watermarkBlob, setWatermarkBlob] = React.useState<Blob | null>(null);
 
-    // UI state: Watermark Position (Visual placeholders)
-    const [watermarkPos, setWatermarkPos] = React.useState<string[]>([]);
+    // UI state: Watermark Position
+    const [watermarkPos, setWatermarkPos] = React.useState<WatermarkSettings["position"]>("bottom-right");
+
+    // UI state: Smart Naming
+    const [namingPattern, setNamingPattern] = React.useState("{date}_{index}");
 
     // UI state: Reset
     const [isResetting, setIsResetting] = React.useState(false);
@@ -134,24 +137,70 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
 
     const handleApplyFitting = async () => {
         try {
+            console.log(`[UI] Applying fit mode: ${fittingOption}`);
             await sandboxProxy.fitToCanvas(fittingOption);
+            console.log(`[UI] Fit complete`);
         } catch (e) {
             console.error("Fit to canvas failed", e);
         }
     };
 
-    // Dummy handlers for UI consistency
-    const handleExport = () => { };
+    const handleExport = async () => {
+        try {
+            console.log("[UI] Starting export...");
+            const format: ExportFormat = isZipExport ? "zip" : "png";
+            await downloadAllPages(addOnUISdk, sandboxProxy, format, namingPattern);
+            console.log("[UI] Export complete");
+        } catch (error) {
+            console.error("[UI] Export failed:", error);
+        }
+    };
+
     const handleRangeChange = () => { }; // Dummy for text inputs
 
     const handleOpenWatermark = () => setIsWatermarkDialogOpen(true);
     const handleCloseWatermark = () => setIsWatermarkDialogOpen(false);
-    const handleApplyWatermark = () => setIsWatermarkDialogOpen(false); // Can be same as close for UI-only
 
-    // Dummy Preset Handlers (UI-only state)
+    const handleWatermarkFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file && file.type.startsWith("image/")) {
+            const blob = new Blob([file], { type: file.type });
+            setWatermarkBlob(blob);
+        } else {
+            console.warn("Please select a valid image file");
+        }
+    };
+
+    const handleApplyWatermark = async () => {
+        if (!watermarkBlob) {
+            console.warn("No watermark image selected");
+            return;
+        }
+
+        try {
+            const settings: WatermarkSettings = {
+                blob: watermarkBlob,
+                opacity: watermarkOpacity / 100,
+                scale: watermarkScale / 100,
+                position: watermarkPos
+            };
+
+            await injectWatermark(sandboxProxy, settings, {
+                onSuccess: () => {
+                    console.log("[UI] Watermark applied");
+                    setIsWatermarkDialogOpen(false);
+                },
+                onError: (e) => console.error("[UI] Watermark failed", e)
+            });
+        } catch (e) {
+            console.error("[UI] Watermark exception", e);
+        }
+    };
+
+    // Preset Handlers
     const handlePresetIG = () => {
         setBulkWidth("1080");
-        setBulkHeight("1350");
+        setBulkHeight("1080");
         setSelectedPreset("instagram");
     };
 
@@ -161,12 +210,30 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
         setSelectedPreset("facebook");
     };
 
-    const toggleWatermarkPos = (pos: string) => {
-        if (watermarkPos.includes(pos)) {
-            setWatermarkPos(watermarkPos.filter(p => p !== pos));
-        } else {
-            setWatermarkPos([...watermarkPos, pos]);
+    const handleBulkResizeApply = async () => {
+        const width = parseInt(bulkWidth, 10);
+        const height = parseInt(bulkHeight, 10);
+
+        if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
+            console.warn("Invalid dimensions for resize");
+            return;
         }
+
+        try {
+            await changePageLayout(sandboxProxy, { width, height }, {
+                onSuccess: () => {
+                    console.log(`[UI] Resized to ${width}x${height}`);
+                    setIsBulkResizeDialogOpen(false);
+                },
+                onError: (e) => console.error("[UI] Resize failed", e)
+            });
+        } catch (e) {
+            console.error("[UI] Resize exception", e);
+        }
+    };
+
+    const setWatermarkPosSafe = (pos: WatermarkSettings["position"]) => {
+        setWatermarkPos(pos);
     };
 
     const toggleZipExport = () => setIsZipExport(!isZipExport);
@@ -193,27 +260,24 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
         });
     };
 
-    // Helper: Simulated Checkbox
-    // Uses Blue-600 (#2563eb) for checked state, Slate-300 (#cbd5e1) for border
-    const SimulatedCheckbox = ({ label, value }: { label: string, value: string }) => {
-        const isChecked = watermarkPos.includes(value);
+    // Helper: Simulated Checkbox (now acting as Radio)
+    const SimulatedCheckbox = ({ label, value }: { label: string, value: WatermarkSettings["position"] }) => {
+        const isChecked = watermarkPos === value;
         return (
             <div
-                onClick={() => toggleWatermarkPos(value)}
+                onClick={() => setWatermarkPosSafe(value)}
                 style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
             >
                 <div style={{
                     width: "14px", height: "14px",
-                    borderRadius: "2px",
+                    borderRadius: "50%", // Radio style
                     border: `2px solid ${isChecked ? "#2563eb" : "#cbd5e1"}`,
                     backgroundColor: isChecked ? "#2563eb" : "transparent",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     transition: "all 0.1s ease"
                 }}>
                     {isChecked && (
-                        <svg width="10" height="10" viewBox="0 0 10 10">
-                            <path d="M1 5l3 3 5-5" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "white" }} />
                     )}
                 </div>
                 <span style={{ fontSize: "12px", color: "#334155" }}>{label}</span>
@@ -463,7 +527,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 </div>
                                 <Button
                                     variant="cta"
-                                    onClick={() => { }} // Dummy Apply handler
+                                    onClick={handleApplyFitting}
                                     style={{
                                         width: "100%",
                                         height: "32px",
@@ -567,6 +631,8 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                         borderRadius: "4px",
                                         fontSize: "13px"
                                     }}
+                                    value={namingPattern}
+                                    onChange={(e) => setNamingPattern(e.target.value)}
                                 />
                                 <span style={{ fontSize: "11px", color: "#64748b" }}>For further updates</span>
                             </div>
@@ -696,10 +762,9 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
 
                                 {/* Upload Placeholder */}
                                 <div
-                                    onClick={handleRangeChange} // Dummy handler
                                     style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}
                                 >
-                                    <div style={{
+                                    <label style={{
                                         width: "100%",
                                         height: "80px",
                                         border: "2px dashed #cbd5e1",
@@ -707,13 +772,20 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
-                                        backgroundColor: "#f8fafc",
-                                        color: "#64748b",
+                                        backgroundColor: watermarkBlob ? "#f0fdf4" : "#f8fafc",
+                                        color: watermarkBlob ? "#15803d" : "#64748b",
                                         fontSize: "12px",
-                                        cursor: "pointer"
+                                        cursor: "pointer",
+                                        transition: "all 0.2s"
                                     }}>
-                                        Click to browse files
-                                    </div>
+                                        {watermarkBlob ? `✓ Selected: ${(watermarkBlob as any).name || "Image"}` : "Click to browse files"}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleWatermarkFileSelect}
+                                            style={{ display: "none" }}
+                                        />
+                                    </label>
                                     <span style={{ fontSize: "11px", color: "#64748b" }}>
                                         Upload logo for watermark
                                     </span>
@@ -749,13 +821,13 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                         gridTemplateColumns: "1fr 1fr",
                                         gap: "10px"
                                     }}>
-                                        <SimulatedCheckbox label="Top Left" value="tl" />
-                                        <SimulatedCheckbox label="Top Right" value="tr" />
-                                        <SimulatedCheckbox label="Bottom Left" value="bl" />
-                                        <SimulatedCheckbox label="Bottom Right" value="br" />
+                                        <SimulatedCheckbox label="Top Left" value="top-left" />
+                                        <SimulatedCheckbox label="Top Right" value="top-right" />
+                                        <SimulatedCheckbox label="Bottom Left" value="bottom-left" />
+                                        <SimulatedCheckbox label="Bottom Right" value="bottom-right" />
                                     </div>
                                     <div style={{ marginTop: "4px" }}>
-                                        <SimulatedCheckbox label="Center" value="c" />
+                                        <SimulatedCheckbox label="Center" value="center" />
                                     </div>
                                 </div>
                             </div>
@@ -945,7 +1017,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 borderTop: "1px solid #e2e8f0"
                             }}>
                                 <Button variant="secondary" onClick={() => setIsBulkResizeDialogOpen(false)}>Cancel</Button>
-                                <Button variant="cta" onClick={() => setIsBulkResizeDialogOpen(false)}>Apply</Button>
+                                <Button variant="cta" onClick={handleBulkResizeApply}>Apply</Button>
                             </div>
                         </div>
                     </div>
