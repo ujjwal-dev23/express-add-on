@@ -4,6 +4,7 @@ import "@spectrum-web-components/theme/express/scale-medium.js";
 import "@spectrum-web-components/theme/express/theme-light.js";
 import "@spectrum-web-components/textfield/sp-textfield.js";
 import "@spectrum-web-components/divider/sp-divider.js";
+import "@spectrum-web-components/slider/sp-slider.js";
 
 // To learn more about using "swc-react" visit:
 // https://opensource.adobe.com/spectrum-web-components/using-swc-react/
@@ -31,12 +32,24 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     // UI state: Toggle & Dialog
     const [isZipExport, setIsZipExport] = React.useState(false);
     const [isWatermarkDialogOpen, setIsWatermarkDialogOpen] = React.useState(false);
+    const [isBulkResizeDialogOpen, setIsBulkResizeDialogOpen] = React.useState(false);
+
+    // UI state: Fitting Option
+    const [fittingOption, setFittingOption] = React.useState<"fill" | "contain">("fill");
+
+    // UI state: Bulk Resize (Visual placeholders)
+    const [bulkWidth, setBulkWidth] = React.useState("");
+    const [bulkHeight, setBulkHeight] = React.useState("");
+
+    // UI state: Watermark Settings
+    const [watermarkOpacity, setWatermarkOpacity] = React.useState(100);
+    const [watermarkScale, setWatermarkScale] = React.useState(100);
 
     // UI state: Watermark Position (Visual placeholders)
     const [watermarkPos, setWatermarkPos] = React.useState<string[]>([]);
 
     // Constants
-    const TotalFiles = 150;
+    const TotalFiles = 250;
 
     // Auto-Reset Effect
     React.useEffect(() => {
@@ -71,14 +84,23 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     };
 
     // Dummy handlers for UI consistency
-    const handleUndo = () => { };
-    const handleRedo = () => { };
     const handleExport = () => { };
     const handleRangeChange = () => { }; // Dummy for text inputs
 
     const handleOpenWatermark = () => setIsWatermarkDialogOpen(true);
     const handleCloseWatermark = () => setIsWatermarkDialogOpen(false);
     const handleApplyWatermark = () => setIsWatermarkDialogOpen(false); // Can be same as close for UI-only
+
+    // Dummy Preset Handlers (UI-only state)
+    const handlePresetIG = () => {
+        setBulkWidth("1080");
+        setBulkHeight("1350");
+    };
+
+    const handlePresetFB = () => {
+        setBulkWidth("1200");
+        setBulkHeight("630");
+    };
 
     const toggleWatermarkPos = (pos: string) => {
         if (watermarkPos.includes(pos)) {
@@ -132,12 +154,12 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
             <div style={{
                 flex: 1,
                 overflowY: "auto",
-                padding: "24px 20px",
+                padding: "24px",
                 display: "flex",
                 flexDirection: "column",
+                alignItems: "center", // Center cards horizontally
                 gap: "24px",
-                width: "320px",
-                margin: "0 auto",
+                width: "100%", // Full width of sidebar
                 boxSizing: "border-box"
             }}>
 
@@ -152,7 +174,9 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         borderRadius: "8px",
                         padding: "16px",
                         backgroundColor: "#ffffff",
-                        boxShadow: "0 1px 2px rgba(0,0,0,0.02)"
+                        boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
+                        width: "100%", // Fill container (up to max-width)
+                        maxWidth: "320px" // Maintain consistent max width
                     }}
                 >
                     <span style={{ fontSize: "14px", fontWeight: "bold", color: "#0f172a" }}>
@@ -172,8 +196,8 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             gap: "8px",
                             padding: "24px 12px",
                             border: `2px dashed ${status === 'completed'
-                                    ? "#2563eb" // Success Solid Blue
-                                    : (isHoveringDrag && status !== 'uploading' ? "#2563eb" : "#cbd5e1")
+                                ? "#2563eb" // Success Solid Blue
+                                : (isHoveringDrag && status !== 'uploading' ? "#2563eb" : "#cbd5e1")
                                 }`,
                             borderRadius: "8px",
                             backgroundColor:
@@ -213,29 +237,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             </span>
                         </div>
                     </div>
-
-                    {/* Upload Button */}
-                    <Button
-                        variant="secondary"
-                        onClick={handleStartUpload}
-                        style={{
-                            width: "100%",
-                            height: "32px",
-                            borderRadius: "4px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "14px",
-                            ...getDisabledStyle(status === "uploading")
-                        }}
-                    >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px" }}>
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="17 8 12 3 7 8" />
-                            <line x1="12" y1="3" x2="12" y2="15" />
-                        </svg>
-                        Upload Images
-                    </Button>
 
                     <span style={{ fontSize: "11px", color: "#64748b" }}>
                         Upload JPG or PNG files (Max {TotalFiles})
@@ -290,7 +291,9 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             padding: "16px",
                             backgroundColor: "#ffffff",
                             boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
-                            animation: "fadeIn 0.4s ease-out"
+                            animation: "fadeIn 0.4s ease-out",
+                            width: "100%", // Fill container (up to max-width)
+                            maxWidth: "320px" // Maintain consistent max width
                         }}
                     >
                         <style>{`
@@ -322,8 +325,62 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             </div>
                         </div>
 
+                        {/* Fitting Options */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                            <span style={{ fontSize: "12px", fontWeight: "600", color: "#334155" }}>
+                                Fitting Options
+                            </span>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                <div style={{ display: "flex", gap: "8px" }}>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={() => setFittingOption("fill")}
+                                        style={{
+                                            flex: 1,
+                                            height: "32px",
+                                            borderRadius: "4px",
+                                            fontSize: "13px",
+                                            padding: "0 12px",
+                                            opacity: fittingOption === "fill" ? 1 : 0.5,
+                                            transition: "opacity 0.2s ease"
+                                        }}
+                                    >
+                                        Fill
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={() => setFittingOption("contain")}
+                                        style={{
+                                            flex: 1,
+                                            height: "32px",
+                                            borderRadius: "4px",
+                                            fontSize: "13px",
+                                            padding: "0 12px",
+                                            opacity: fittingOption === "contain" ? 1 : 0.5,
+                                            transition: "opacity 0.2s ease"
+                                        }}
+                                    >
+                                        Contain
+                                    </Button>
+                                </div>
+                                <Button
+                                    variant="primary"
+                                    onClick={() => { }} // Dummy Apply handler
+                                    style={{
+                                        width: "100%",
+                                        height: "32px",
+                                        borderRadius: "4px",
+                                        fontSize: "13px",
+                                        padding: "0 12px"
+                                    }}
+                                >
+                                    Apply
+                                </Button>
+                            </div>
+                        </div>
+
                         {/* Watermark Button */}
-                        <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                        <div style={{ display: "flex", justifyContent: "center" }}>
                             <Button
                                 variant="secondary"
                                 quiet
@@ -343,254 +400,345 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                             </Button>
                         </div>
 
-                        {/* Undo / Redo */}
-                        <div style={{ display: "flex", gap: "8px" }}>
+                        {/* Bulk Resize Button */}
+                        <div style={{ display: "flex", justifyContent: "flex-start" }}>
                             <Button
-                                variant="secondary"
-                                quiet
-                                onClick={handleUndo}
+                                variant="primary"
+                                onClick={() => setIsBulkResizeDialogOpen(true)}
                                 style={{
-                                    minWidth: "auto",
-                                    padding: "0 8px",
-                                    height: "28px",
+                                    height: "32px",
                                     borderRadius: "4px",
-                                    fontSize: "12px",
-                                    justifyContent: "center",
-                                    ...getDisabledStyle(true)
+                                    fontSize: "13px",
+                                    padding: "0 12px"
                                 }}
                             >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px" }}>
-                                    <path d="M3 7v6h6" />
-                                    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-                                </svg>
-                                Undo
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                quiet
-                                onClick={handleRedo}
-                                style={{
-                                    minWidth: "auto",
-                                    padding: "0 8px",
-                                    height: "28px",
-                                    borderRadius: "4px",
-                                    fontSize: "12px",
-                                    justifyContent: "center",
-                                    ...getDisabledStyle(true)
-                                }}
-                            >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px" }}>
-                                    <path d="M21 7v6h-6" />
-                                    <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
-                                </svg>
-                                Redo
+                                Bulk Resize
                             </Button>
                         </div>
                     </div>
                 )}
 
-                {/* 3) Change History Card */}
-                {/* Visible same condition as Batch Controls */}
+                {/* 3) Smart Naming Card */}
                 {(status !== 'idle' || hasActiveSession) && (
                     <div
                         style={{
                             display: "flex",
                             flexDirection: "column",
-                            gap: "10px",
+                            gap: "16px",
                             border: "1px solid #e2e8f0",
                             borderRadius: "8px",
                             padding: "16px",
                             backgroundColor: "#ffffff",
                             boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
-                            animation: "fadeIn 0.5s ease-out"
+                            width: "100%",
+                            maxWidth: "320px"
                         }}
                     >
                         <span style={{ fontSize: "14px", fontWeight: "bold", color: "#0f172a" }}>
-                            Change History
+                            Smart Naming
                         </span>
-
-                        <div style={{
-                            maxHeight: "80px",
-                            overflowY: "auto",
-                            border: "1px solid #e2e8f0",
-                            borderRadius: "4px",
-                            padding: "6px",
-                            fontSize: "11px",
-                            color: "#64748b",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "4px"
-                        }}>
-                            <div>• Initial import ({TotalFiles})</div>
-                            <div>• Batch edit applied</div>
-                            <div>• Watermark added</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                <span style={{ fontSize: "11px", color: "#334155" }}>Naming Pattern</span>
+                                {/* @ts-ignore */}
+                                <sp-textfield placeholder="Item Name - 01" style={{ width: "100%" }}></sp-textfield>
+                            </div>
                         </div>
                     </div>
                 )}
 
+                {/* 4) Reset All Button */}
+                {(status !== 'idle' || hasActiveSession) && (
+                    <div style={{ width: "100%", maxWidth: "320px", display: "flex", justifyContent: "flex-end" }}>
+                        <Button
+                            variant="negative"
+                            quiet
+                            onClick={() => { }} // Dummy handler
+                            style={{
+                                height: "32px",
+                                borderRadius: "4px",
+                                fontSize: "13px"
+                            }}
+                        >
+                            Reset All
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {/* STICKY EXPORT FOOTER - REVEAL ONLY AFTER INTERACTION */}
             {/* Background: White (#ffffff), Border Top: Slate-200 (#e2e8f0) */}
-            {(status !== 'idle' || hasActiveSession) && (
-                <div style={{
-                    padding: "16px 20px",
-                    borderTop: "1px solid #e2e8f0",
-                    backgroundColor: "#ffffff",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                    animation: "fadeIn 0.6s ease-out"
-                }}>
-                    <div
-                        onClick={toggleZipExport}
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            cursor: "pointer",
-                            padding: "4px 0"
-                        }}
-                    >
-                        <span style={{ fontSize: "14px", color: "#0f172a", fontWeight: "400" }}>
-                            Download as ZIP
-                        </span>
-
-                        {/* Visual Switch */}
-                        {/* ON: Blue-600 (#2563eb), OFF: Slate-300 (#cbd5e1) */}
-                        <div style={{
-                            width: "32px",
-                            height: "18px",
-                            backgroundColor: isZipExport ? "#2563eb" : "#cbd5e1",
-                            borderRadius: "10px",
-                            position: "relative",
-                            transition: "background-color 0.2s ease"
-                        }}>
-                            <div style={{
-                                width: "14px",
-                                height: "14px",
-                                backgroundColor: "white",
-                                borderRadius: "50%",
-                                position: "absolute",
-                                top: "2px",
-                                left: isZipExport ? "16px" : "2px",
-                                transition: "left 0.2s ease",
-                                boxShadow: "0 1px 2px rgba(0,0,0,0.2)"
-                            }} />
-                        </div>
-                    </div>
-
-                    <Button
-                        variant="cta"
-                        onClick={handleExport}
-                        style={{
-                            width: "100%",
-                            borderRadius: "6px",
-                            fontSize: "15px",
-                            textAlign: "center"
-                        }}
-                    >
-                        Export
-                    </Button>
-                </div>
-            )}
-
-            {/* WATERMARK DIALOG OVERLAY */}
-            {isWatermarkDialogOpen && (
-                <div style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    backgroundColor: "rgba(0,0,0,0.4)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 100,
-                    backdropFilter: "blur(2px)"
-                }}>
+            {
+                (status !== 'idle' || hasActiveSession) && (
                     <div style={{
-                        width: "280px",
-                        backgroundColor: "white",
-                        borderRadius: "8px",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                        padding: "16px 20px",
+                        borderTop: "1px solid #e2e8f0",
+                        backgroundColor: "#ffffff",
                         display: "flex",
                         flexDirection: "column",
-                        overflow: "hidden"
+                        gap: "12px",
+                        animation: "fadeIn 0.6s ease-out"
                     }}>
-                        {/* Header Border: Slate-200 (#e2e8f0) */}
-                        <div style={{ padding: "16px", borderBottom: "1px solid #e2e8f0" }}>
-                            <span style={{ fontSize: "16px", fontWeight: "bold", color: "#0f172a" }}>
-                                Upload Watermark Logo
+                        <div
+                            onClick={toggleZipExport}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                cursor: "pointer",
+                                padding: "4px 0"
+                            }}
+                        >
+                            <span style={{ fontSize: "14px", color: "#0f172a", fontWeight: "400" }}>
+                                Download as ZIP
                             </span>
-                        </div>
 
-                        <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
-
-                            {/* Upload Placeholder */}
-                            <div
-                                onClick={handleRangeChange} // Dummy handler
-                                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}
-                            >
+                            {/* Visual Switch */}
+                            {/* ON: Blue-600 (#2563eb), OFF: Slate-300 (#cbd5e1) */}
+                            <div style={{
+                                width: "32px",
+                                height: "18px",
+                                backgroundColor: isZipExport ? "#2563eb" : "#cbd5e1",
+                                borderRadius: "10px",
+                                position: "relative",
+                                transition: "background-color 0.2s ease"
+                            }}>
                                 <div style={{
-                                    width: "100%",
-                                    height: "80px",
-                                    border: "2px dashed #cbd5e1",
-                                    borderRadius: "8px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    backgroundColor: "#f8fafc",
-                                    color: "#64748b",
-                                    fontSize: "12px",
-                                    cursor: "pointer"
-                                }}>
-                                    Click to browse files
-                                </div>
-                                <span style={{ fontSize: "11px", color: "#64748b" }}>
-                                    Upload logo for watermark
-                                </span>
-                            </div>
-
-                            <Divider />
-
-                            {/* Position Selection */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                <span style={{ fontSize: "12px", fontWeight: "600", color: "#0f172a" }}>
-                                    Position
-                                </span>
-                                <div style={{
-                                    display: "grid",
-                                    gridTemplateColumns: "1fr 1fr",
-                                    gap: "10px"
-                                }}>
-                                    <SimulatedCheckbox label="Top Left" value="tl" />
-                                    <SimulatedCheckbox label="Top Right" value="tr" />
-                                    <SimulatedCheckbox label="Bottom Left" value="bl" />
-                                    <SimulatedCheckbox label="Bottom Right" value="br" />
-                                </div>
-                                <div style={{ marginTop: "4px" }}>
-                                    <SimulatedCheckbox label="Center" value="c" />
-                                </div>
+                                    width: "14px",
+                                    height: "14px",
+                                    backgroundColor: "white",
+                                    borderRadius: "50%",
+                                    position: "absolute",
+                                    top: "2px",
+                                    left: isZipExport ? "16px" : "2px",
+                                    transition: "left 0.2s ease",
+                                    boxShadow: "0 1px 2px rgba(0,0,0,0.2)"
+                                }} />
                             </div>
                         </div>
 
-                        {/* Footer BG: White (#ffffff), Border: Slate-200 (#e2e8f0) */}
+                        <Button
+                            variant="cta"
+                            onClick={handleExport}
+                            style={{
+                                width: "100%",
+                                borderRadius: "6px",
+                                fontSize: "15px",
+                                textAlign: "center"
+                            }}
+                        >
+                            Export
+                        </Button>
+                    </div>
+                )
+            }
+
+            {/* WATERMARK DIALOG OVERLAY */}
+            {
+                isWatermarkDialogOpen && (
+                    <div style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: "rgba(0,0,0,0.4)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 100,
+                        backdropFilter: "blur(2px)"
+                    }}>
                         <div style={{
-                            padding: "16px",
+                            width: "280px",
+                            backgroundColor: "white",
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                             display: "flex",
-                            justifyContent: "flex-end",
-                            gap: "8px",
-                            backgroundColor: "#ffffff",
-                            borderTop: "1px solid #e2e8f0"
+                            flexDirection: "column",
+                            overflow: "hidden"
                         }}>
-                            <Button variant="secondary" onClick={handleCloseWatermark}>Cancel</Button>
-                            <Button variant="cta" onClick={handleApplyWatermark}>Apply</Button>
+                            {/* Header Border: Slate-200 (#e2e8f0) */}
+                            <div style={{ padding: "16px", borderBottom: "1px solid #e2e8f0" }}>
+                                <span style={{ fontSize: "16px", fontWeight: "bold", color: "#0f172a" }}>
+                                    Upload Watermark Logo
+                                </span>
+                            </div>
+
+                            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
+
+                                {/* Upload Placeholder */}
+                                <div
+                                    onClick={handleRangeChange} // Dummy handler
+                                    style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}
+                                >
+                                    <div style={{
+                                        width: "100%",
+                                        height: "80px",
+                                        border: "2px dashed #cbd5e1",
+                                        borderRadius: "8px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        backgroundColor: "#f8fafc",
+                                        color: "#64748b",
+                                        fontSize: "12px",
+                                        cursor: "pointer"
+                                    }}>
+                                        Click to browse files
+                                    </div>
+                                    <span style={{ fontSize: "11px", color: "#64748b" }}>
+                                        Upload logo for watermark
+                                    </span>
+                                </div>
+
+                                {/* Opacity Slider */}
+                                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                        <span style={{ fontSize: "12px", fontWeight: "600", color: "#0f172a" }}>Opacity</span>
+                                        <span style={{ fontSize: "12px", color: "#64748b" }}>{watermarkOpacity}%</span>
+                                    </div>
+                                    {/* @ts-ignore */}
+                                    <sp-slider min="1" max="100" value={watermarkOpacity} onInput={(e: any) => setWatermarkOpacity(e.target.value)} style={{ width: "100%" }}></sp-slider>
+                                </div>
+
+                                {/* Scale Slider */}
+                                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                        <span style={{ fontSize: "12px", fontWeight: "600", color: "#0f172a" }}>Scale</span>
+                                        <span style={{ fontSize: "12px", color: "#64748b" }}>{watermarkScale}</span>
+                                    </div>
+                                    {/* @ts-ignore */}
+                                    <sp-slider min="1" max="100" value={watermarkScale} onInput={(e: any) => setWatermarkScale(e.target.value)} style={{ width: "100%" }}></sp-slider>
+                                </div>
+
+                                {/* Position Selection */}
+                                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
+                                    <span style={{ fontSize: "12px", fontWeight: "600", color: "#0f172a" }}>
+                                        Position
+                                    </span>
+                                    <div style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "1fr 1fr",
+                                        gap: "10px"
+                                    }}>
+                                        <SimulatedCheckbox label="Top Left" value="tl" />
+                                        <SimulatedCheckbox label="Top Right" value="tr" />
+                                        <SimulatedCheckbox label="Bottom Left" value="bl" />
+                                        <SimulatedCheckbox label="Bottom Right" value="br" />
+                                    </div>
+                                    <div style={{ marginTop: "4px" }}>
+                                        <SimulatedCheckbox label="Center" value="c" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer BG: White (#ffffff), Border: Slate-200 (#e2e8f0) */}
+                            <div style={{
+                                padding: "16px",
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                gap: "8px",
+                                backgroundColor: "#ffffff",
+                                borderTop: "1px solid #e2e8f0"
+                            }}>
+                                <Button variant="secondary" onClick={handleCloseWatermark}>Cancel</Button>
+                                <Button variant="cta" onClick={handleApplyWatermark}>Apply</Button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
+            {/* BULK RESIZE DIALOG OVERLAY */}
+            {
+                isBulkResizeDialogOpen && (
+                    <div style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: "rgba(0,0,0,0.4)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 100,
+                        backdropFilter: "blur(2px)"
+                    }}>
+                        <div style={{
+                            width: "280px",
+                            backgroundColor: "white",
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                            display: "flex",
+                            flexDirection: "column",
+                            overflow: "hidden"
+                        }}>
+                            {/* Header */}
+                            <div style={{ padding: "16px", borderBottom: "1px solid #e2e8f0" }}>
+                                <span style={{ fontSize: "16px", fontWeight: "bold", color: "#0f172a" }}>
+                                    Bulk Resize
+                                </span>
+                            </div>
+
+                            {/* Content */}
+                            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
+
+                                {/* Presets */}
+                                <div style={{ display: "flex", gap: "8px" }}>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={handlePresetIG}
+                                        style={{ flex: 1, flexDirection: "column", height: "auto", padding: "8px 0", gap: "4px" }}
+                                    >
+                                        {/* Simple Icon placeholder */}
+                                        <div style={{ width: "16px", height: "16px", backgroundColor: "#334155", borderRadius: "2px" }}></div>
+                                        <span style={{ fontSize: "10px" }}>Instagram</span>
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={handlePresetFB}
+                                        style={{ flex: 1, flexDirection: "column", height: "auto", padding: "8px 0", gap: "4px" }}
+                                    >
+                                        <div style={{ width: "16px", height: "16px", backgroundColor: "#334155", borderRadius: "2px" }}></div>
+                                        <span style={{ fontSize: "10px" }}>Facebook</span>
+                                    </Button>
+                                </div>
+
+                                <span style={{ fontSize: "11px", color: "#64748b", textAlign: "center" }}>
+                                    or Custom
+                                </span>
+
+                                {/* Dimensions */}
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                        <span style={{ fontSize: "11px", color: "#334155" }}>Width (px)</span>
+                                        {/* @ts-ignore */}
+                                        <sp-textfield type="number" value={bulkWidth} placeholder="1080" style={{ width: "100%" }} onInput={(e: any) => setBulkWidth(e.target.value)}></sp-textfield>
+                                    </div>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                        <span style={{ fontSize: "11px", color: "#334155" }}>Height (px)</span>
+                                        {/* @ts-ignore */}
+                                        <sp-textfield type="number" value={bulkHeight} placeholder="1080" style={{ width: "100%" }} onInput={(e: any) => setBulkHeight(e.target.value)}></sp-textfield>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div style={{
+                                padding: "16px",
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                gap: "8px",
+                                backgroundColor: "#ffffff",
+                                borderTop: "1px solid #e2e8f0"
+                            }}>
+                                <Button variant="secondary" onClick={() => setIsBulkResizeDialogOpen(false)}>Cancel</Button>
+                                <Button variant="cta" onClick={() => setIsBulkResizeDialogOpen(false)}>Apply</Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
         </Theme>
     );
 };
