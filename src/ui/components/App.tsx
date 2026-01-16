@@ -22,6 +22,10 @@ import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk
 import { ImportTool } from "../../sandbox/features/import/ui/ImportTool";
 import { CanvasFittingTool } from "../../sandbox/features/canvas-fitting/ui/CanvasFittingTool";
 
+import { Switch } from "@swc-react/switch";
+import { useState } from "react";
+import { downloadAllPages } from "../../sandbox/features/export/ui";
+
 const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxProxy: DocumentSandboxApi }) => {
 
     // UI state: 'idle' | 'uploading' | 'completed'

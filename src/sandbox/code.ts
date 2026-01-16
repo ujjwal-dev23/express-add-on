@@ -4,6 +4,8 @@ import { DocumentSandboxApi } from "../models/DocumentSandboxApi";
 import { importImages } from "./features/import";
 import { fitToCanvas } from "./features/canvas-fitting";
 
+import { getExportablePages } from "./features/export";
+
 // Get the document sandbox runtime.
 const { runtime } = addOnSandboxSdk.instance;
 
@@ -37,7 +39,8 @@ function start(): void {
         },
         fitToCanvas: async (fitMode) => {
             await fitToCanvas(fitMode);
-        }
+        },
+        getPages: async () => getExportablePages()
     };
 
     // Expose `sandboxApi` to the UI runtime.
