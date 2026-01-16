@@ -2,6 +2,7 @@ import addOnSandboxSdk from "add-on-sdk-document-sandbox";
 import { editor } from "express-document-sdk";
 import { DocumentSandboxApi } from "../models/DocumentSandboxApi";
 import { importImages } from "./features/import";
+import { injectWatermark } from "./features/watermark";
 
 // Get the document sandbox runtime.
 const { runtime } = addOnSandboxSdk.instance;
@@ -33,6 +34,9 @@ function start(): void {
         },
         importImages: async (images) => {
             await importImages(images);
+        },
+        injectWatermark: async (settings) => {
+            await injectWatermark(settings);
         }
     };
 

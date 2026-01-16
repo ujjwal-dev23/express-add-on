@@ -2,23 +2,18 @@
 // import these spectrum web components modules:
 import "@spectrum-web-components/theme/express/scale-medium.js";
 import "@spectrum-web-components/theme/express/theme-light.js";
-import "@spectrum-web-components/picker/sp-picker.js";
-import "@spectrum-web-components/slider/sp-slider.js";
-import "@spectrum-web-components/menu/sp-menu-item.js";
-import "@spectrum-web-components/textfield/sp-textfield.js";
-import "@spectrum-web-components/divider/sp-divider.js";
 
 // To learn more about using "swc-react" visit:
 // https://opensource.adobe.com/spectrum-web-components/using-swc-react/
 import { Button } from "@swc-react/button";
 import { Theme } from "@swc-react/theme";
-import { Divider } from "@swc-react/divider";
 
 
 import React from "react";
 import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 import "./App.css";
 import { startImageUpload, handleImageDrop, isValidDrag } from "../../sandbox/features/import/ui";
+import { WatermarkTool } from "../../sandbox/features/watermark/ui/WatermarkTool";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 
@@ -138,9 +133,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                     </div>
                 </div>
 
-                <div style={{ margin: "6px 0" }}>
-                    <Divider />
-                </div>
+                <div style={{ margin: "6px 0", height: "1px", backgroundColor: "var(--spectrum-global-color-gray-300)" }}></div>
 
                 {/* Import Card */}
                 <div
@@ -336,9 +329,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                         </span>
                     </div>
 
-                    <div style={{ margin: "6px 0" }}>
-                        <Divider />
-                    </div>
+                    <div style={{ margin: "6px 0", height: "1px", backgroundColor: "var(--spectrum-global-color-gray-300)" }}></div>
 
                     {/* Undo / Redo */}
                     <div style={{ display: "flex", gap: "8px" }}>
@@ -385,9 +376,12 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                     </div>
                 </div>
 
-                <div style={{ margin: "6px 0" }}>
-                    <Divider />
-                </div>
+                <div style={{ margin: "6px 0", height: "1px", backgroundColor: "var(--spectrum-global-color-gray-300)" }}></div>
+
+                {/* Watermark Tool */}
+                <WatermarkTool sandboxProxy={sandboxProxy} />
+
+                <div style={{ margin: "6px 0", height: "1px", backgroundColor: "var(--spectrum-global-color-gray-300)" }}></div>
 
                 {/* Batch Actions */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -402,9 +396,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                     </Button>
                 </div>
 
-                <div style={{ margin: "6px 0" }}>
-                    <Divider />
-                </div>
+                <div style={{ margin: "6px 0", height: "1px", backgroundColor: "var(--spectrum-global-color-gray-300)" }}></div>
 
                 {/* Export Section */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
