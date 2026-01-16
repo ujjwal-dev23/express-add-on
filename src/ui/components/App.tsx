@@ -15,7 +15,7 @@ import { Divider } from "@swc-react/divider";
 import { Textfield } from "@swc-react/textfield";
 import { Slider } from "@swc-react/slider";
 import { Picker } from "@swc-react/picker";
-import { MenuItem } from "@swc-react/menu-item";
+import { MenuItem } from "@swc-react/menu";
 
 import React from "react";
 import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
@@ -472,6 +472,23 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                     padding: "0 12px"
                                 }}
                             >
+                                <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                                    <div style={{
+                                        width: "18px",
+                                        height: "18px",
+                                        backgroundColor: "#f472b6",
+                                        borderRadius: "50%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        marginRight: "8px"
+                                    }}>
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
+                                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+                                        </svg>
+                                    </div>
+                                    Bulk Resize
+                                </div>
                             </Button>
                         </div>
                     </div>
@@ -575,7 +592,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                 }} />
                             </div>
                         </div>
-
                         <Button
                             variant="cta"
                             onClick={handleExport}
