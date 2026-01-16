@@ -61,6 +61,10 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     // UI state: Reset
     const [isResetting, setIsResetting] = React.useState(false);
 
+    // UI state: Range
+    const [rangeStart, setRangeStart] = React.useState(1);
+    const [rangeEnd, setRangeEnd] = React.useState(250);
+
     // Constants
     const TotalFiles = 250;
 
@@ -137,8 +141,8 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
 
     const handleApplyFitting = async () => {
         try {
-            console.log(`[UI] Applying fit mode: ${fittingOption}`);
-            await sandboxProxy.fitToCanvas(fittingOption);
+            console.log(`[UI] Applying fit mode: ${fittingOption} with range ${rangeStart}-${rangeEnd}`);
+            await sandboxProxy.fitToCanvas(fittingOption, { start: rangeStart, end: rangeEnd });
             console.log(`[UI] Fit complete`);
         } catch (e) {
             console.error("Fit to canvas failed", e);
@@ -149,14 +153,23 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
         try {
             console.log("[UI] Starting export...");
             const format: ExportFormat = isZipExport ? "zip" : "png";
-            await downloadAllPages(addOnUISdk, sandboxProxy, format, namingPattern);
+            await downloadAllPages(addOnUISdk, sandboxProxy, format, namingPattern, { start: rangeStart, end: rangeEnd });
             console.log("[UI] Export complete");
         } catch (error) {
             console.error("[UI] Export failed:", error);
         }
     };
 
-    const handleRangeChange = () => { }; // Dummy for text inputs
+    const handleRangeChange = (type: "start" | "end", value: string) => {
+        const val = parseInt(value, 10);
+        if (isNaN(val)) return;
+
+        if (type === "start") {
+            setRangeStart(val);
+        } else {
+            setRangeEnd(val);
+        }
+    };
 
     const handleOpenWatermark = () => setIsWatermarkDialogOpen(true);
     const handleCloseWatermark = () => setIsWatermarkDialogOpen(false);
@@ -191,7 +204,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                     setIsWatermarkDialogOpen(false);
                 },
                 onError: (e) => console.error("[UI] Watermark failed", e)
-            });
+            }, { start: rangeStart, end: rangeEnd });
         } catch (e) {
             console.error("[UI] Watermark exception", e);
         }
@@ -226,7 +239,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                     setIsBulkResizeDialogOpen(false);
                 },
                 onError: (e) => console.error("[UI] Resize failed", e)
-            });
+            }, { start: rangeStart, end: rangeEnd });
         } catch (e) {
             console.error("[UI] Resize exception", e);
         }
@@ -458,7 +471,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                     <span style={{ fontSize: "11px", color: "#334155" }}>From</span>
                                     <input
                                         type="number"
-                                        value="1"
+                                        value={rangeStart}
                                         style={{
                                             width: "100%",
                                             padding: "8px",
@@ -466,14 +479,14 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                             borderRadius: "4px",
                                             fontSize: "13px"
                                         }}
-                                        onChange={handleRangeChange}
+                                        onChange={(e) => handleRangeChange("start", e.target.value)}
                                     />
                                 </div>
                                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                     <span style={{ fontSize: "11px", color: "#334155" }}>To</span>
                                     <input
                                         type="number"
-                                        value={`${TotalFiles}`}
+                                        value={rangeEnd}
                                         style={{
                                             width: "100%",
                                             padding: "8px",
@@ -481,7 +494,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                                             borderRadius: "4px",
                                             fontSize: "13px"
                                         }}
-                                        onChange={handleRangeChange}
+                                        onChange={(e) => handleRangeChange("end", e.target.value)}
                                     />
                                 </div>
                             </div>

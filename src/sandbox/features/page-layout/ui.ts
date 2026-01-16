@@ -18,11 +18,12 @@ interface ChangePageLayoutOptions {
 export const changePageLayout = async (
     sandboxProxy: DocumentSandboxApi,
     settings: PageLayoutSettings,
-    options: ChangePageLayoutOptions = {}
+    options: ChangePageLayoutOptions = {},
+    range?: { start: number, end: number }
 ): Promise<void> => {
     options.onStart?.();
     try {
-        await sandboxProxy.changePageLayout(settings);
+        await sandboxProxy.changePageLayout(settings, range);
         options.onSuccess?.();
     } catch (error) {
         console.error("[UI] Error changing page layout:", error);

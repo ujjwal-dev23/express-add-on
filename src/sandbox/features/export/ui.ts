@@ -12,7 +12,7 @@ import { DocumentSandboxApi } from "../../../models/DocumentSandboxApi";
  * @param sandboxProxy The Sandbox Proxy instance
  * @returns A promise that resolves to the array of renditions
  */
-export const exportAllPages = async (addOnUISdk: AddOnSDKAPI, sandboxProxy: DocumentSandboxApi) => {
+export const exportAllPages = async (addOnUISdk: AddOnSDKAPI, sandboxProxy: DocumentSandboxApi, range?: { start: number, end: number }) => {
   // Check if export is allowed
   const isExportAllowed = await addOnUISdk.app.document.exportAllowed();
   if (!isExportAllowed) {
@@ -23,7 +23,7 @@ export const exportAllPages = async (addOnUISdk: AddOnSDKAPI, sandboxProxy: Docu
   type PageInfo = Awaited<ReturnType<DocumentSandboxApi['getPages']>>[number];
 
   // Get pages from sandbox
-  const pages = await sandboxProxy.getPages();
+  const pages = await sandboxProxy.getPages(range);
   const pageIds = pages.map(page => page.id);
 
   if (pageIds.length === 0) {
@@ -155,9 +155,10 @@ export const downloadAllPages = async (
   addOnUISdk: AddOnSDKAPI,
   sandboxProxy: DocumentSandboxApi,
   format: ExportFormat = "png",
-  filenamePattern: string = "{date}_{index}"
+  filenamePattern: string = "{date}_{index}",
+  range?: { start: number, end: number }
 ) => {
-  const { renditions, pages, docName } = await exportAllPages(addOnUISdk, sandboxProxy);
+  const { renditions, pages, docName } = await exportAllPages(addOnUISdk, sandboxProxy, range);
 
   if (format === "zip") {
     await saveAsZip(renditions, pages, docName, filenamePattern);
