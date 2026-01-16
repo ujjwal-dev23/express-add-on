@@ -48,6 +48,7 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
     // UI state: Watermark Position (Visual placeholders)
     const [watermarkPos, setWatermarkPos] = React.useState<string[]>([]);
 
+    // TODO : Replace with actual values
     // Constants
     const TotalFiles = 250;
 
