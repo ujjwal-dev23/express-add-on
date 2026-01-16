@@ -40,11 +40,27 @@ export async function fitToCanvas(fitMode: FitMode): Promise<void> {
                         const initialBounds = container.boundsLocal;
                         console.log(`[Sandbox] Initial container size: ${initialBounds.width}x${initialBounds.height}`);
 
-                        // Get original media dimensions (preserve aspect ratio - no cropping)
+                        // Get original media dimensions
+                        // IMPORTANT: After resizing, mediaRectangle dimensions might be scaled
+                        // We need to get the original media aspect ratio from the container's current state
+                        // Calculate original aspect ratio from current container bounds and mediaRectangle bounds
                         const maskShape = container.maskShape;
                         const mediaRect = container.mediaRectangle;
-                        const mediaWidth = mediaRect.width;
-                        const mediaHeight = mediaRect.height;
+                        
+                        // Get current media dimensions - these might be scaled after previous resizes
+                        let mediaWidth = mediaRect.width;
+                        let mediaHeight = mediaRect.height;
+                        
+                        // Calculate the actual original aspect ratio by comparing container and media dimensions
+                        // If container was resized, we can reverse-calculate the original media size
+                        const currentContainerAspectRatio = initialBounds.width / initialBounds.height;
+                        const currentMediaAspectRatio = mediaWidth / mediaHeight;
+                        
+                        // If the container aspect ratio matches the media aspect ratio, the container might be at original size
+                        // But if they differ, we need to calculate the original media size
+                        // For now, use the mediaRectangle dimensions directly - they should represent the media bounds
+                        // If they're wrong after resize, we'll need to store original dimensions or calculate them differently
+                        
                         const mediaAspectRatio = mediaWidth / mediaHeight;
                         const artboardAspectRatio = artboardWidth / artboardHeight;
                         
@@ -58,18 +74,28 @@ export async function fitToCanvas(fitMode: FitMode): Promise<void> {
                         
                         if (fitMode === "contain") {
                             // Contain: Shrinks or grows until entire image fits inside the box
-                            // Image fits within artboard, may have empty space, NO CROPPING
-                            if (mediaAspectRatio > artboardAspectRatio) {
-                                // Media is wider - fit to width (height will be smaller)
+                            // Implementation: Find image height and width, whichever is greater, 
+                            //                make that equal to document's height or width respectively
+                            // Maintain aspect ratio and keep image centered
+                            
+                            console.log(`[Sandbox] Contain mode - image dimensions: ${mediaWidth}x${mediaHeight}`);
+                            console.log(`[Sandbox] Contain mode - checking: mediaWidth (${mediaWidth}) > mediaHeight (${mediaHeight})? ${mediaWidth > mediaHeight}`);
+                            
+                            if (mediaWidth > mediaHeight) {
+                                // Image width > height: make image width = document width
                                 targetWidth = artboardWidth;
+                                // Scale height proportionally to maintain aspect ratio
                                 targetHeight = artboardWidth / mediaAspectRatio;
+                                console.log(`[Sandbox] Contain mode - width > height: setting width to ${targetWidth}, height to ${targetHeight.toFixed(0)}`);
                             } else {
-                                // Media is taller - fit to height (width will be smaller)
+                                // Image height >= width: make image height = document height
                                 targetHeight = artboardHeight;
+                                // Scale width proportionally to maintain aspect ratio
                                 targetWidth = artboardHeight * mediaAspectRatio;
+                                console.log(`[Sandbox] Contain mode - height >= width: setting height to ${targetHeight}, width to ${targetWidth.toFixed(0)}`);
                             }
                             
-                            console.log(`[Sandbox] Contain mode - scaling to fit within: ${targetWidth.toFixed(0)}x${targetHeight.toFixed(0)}`);
+                            console.log(`[Sandbox] Contain mode - final target: ${targetWidth.toFixed(0)}x${targetHeight.toFixed(0)} (maintains aspect ratio ${mediaAspectRatio.toFixed(2)})`);
                         } else {
                             // Fill: Grows until entire canvas is covered
                             // Implementation: If document height > width, make image height = document height
@@ -139,20 +165,51 @@ export async function fitToCanvas(fitMode: FitMode): Promise<void> {
                                 }
                             } else {
                                 // Contain mode
-                                if (mediaAspectRatio > artboardAspectRatio) {
-                                    // Contain: width = document width, so provide width
-                                    resizeOptions = {
-                                        width: targetWidth,
-                                        behavior: "proportional",
-                                        avoidScalingVisualDetailsIfPossible: true
-                                    };
+                                // Use the dimension that was set to match document (based on which is greater)
+                                // IMPORTANT: We need to ensure the resize actually happens by providing a dimension
+                                // that will cause a change. If container is already at target size in one dimension,
+                                // provide the other dimension instead
+                                const currentWidth = container.boundsLocal.width;
+                                const currentHeight = container.boundsLocal.height;
+                                
+                                if (mediaWidth > mediaHeight) {
+                                    // Image width > height: we want width = document width
+                                    // Check if we need to change width or height
+                                    if (Math.abs(currentWidth - targetWidth) < 1 && Math.abs(currentHeight - targetHeight) > 1) {
+                                        // Width is already correct, force resize by providing height
+                                        resizeOptions = {
+                                            height: targetHeight,
+                                            behavior: "proportional",
+                                            avoidScalingVisualDetailsIfPossible: true
+                                        };
+                                        console.log(`[Sandbox] Contain: Width already ${currentWidth.toFixed(0)}, forcing resize with height ${targetHeight.toFixed(0)}`);
+                                    } else {
+                                        // Provide width
+                                        resizeOptions = {
+                                            width: targetWidth,
+                                            behavior: "proportional",
+                                            avoidScalingVisualDetailsIfPossible: true
+                                        };
+                                    }
                                 } else {
-                                    // Contain: height = document height, so provide height
-                                    resizeOptions = {
-                                        height: targetHeight,
-                                        behavior: "proportional",
-                                        avoidScalingVisualDetailsIfPossible: true
-                                    };
+                                    // Image height >= width: we want height = document height
+                                    // Check if we need to change height or width
+                                    if (Math.abs(currentHeight - targetHeight) < 1 && Math.abs(currentWidth - targetWidth) > 1) {
+                                        // Height is already correct, force resize by providing width
+                                        resizeOptions = {
+                                            width: targetWidth,
+                                            behavior: "proportional",
+                                            avoidScalingVisualDetailsIfPossible: true
+                                        };
+                                        console.log(`[Sandbox] Contain: Height already ${currentHeight.toFixed(0)}, forcing resize with width ${targetWidth.toFixed(0)}`);
+                                    } else {
+                                        // Provide height
+                                        resizeOptions = {
+                                            height: targetHeight,
+                                            behavior: "proportional",
+                                            avoidScalingVisualDetailsIfPossible: true
+                                        };
+                                    }
                                 }
                             }
                             
