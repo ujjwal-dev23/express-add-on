@@ -6,4 +6,5 @@ export interface DocumentSandboxApi {
     getPages(): Promise<{ id: string; name: string; width: number; height: number; }[]>;
     importImages(images: ImageAsset[]): Promise<void>;
     fitToCanvas(fitMode: FitMode): Promise<void>;
+    resetAllPages(): Promise<void>;
 }

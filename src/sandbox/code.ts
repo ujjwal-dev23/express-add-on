@@ -3,6 +3,7 @@ import { editor } from "express-document-sdk";
 import { DocumentSandboxApi } from "../models/DocumentSandboxApi";
 import { importImages } from "./features/import";
 import { fitToCanvas } from "./features/canvas-fitting";
+import { resetAllPages } from "./features/reset";
 
 import { getExportablePages } from "./features/export";
 
@@ -40,7 +41,10 @@ function start(): void {
         fitToCanvas: async (fitMode) => {
             await fitToCanvas(fitMode);
         },
-        getPages: async () => getExportablePages()
+        getPages: async () => getExportablePages(),
+        resetAllPages: async () => {
+            await resetAllPages();
+        }
     };
 
     // Expose `sandboxApi` to the UI runtime.
