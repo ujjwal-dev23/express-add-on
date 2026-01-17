@@ -32,8 +32,16 @@ export async function fitToCanvas(fitMode: FitMode, range?: { start: number, end
                 // SceneNodeType.mediaContainer = "MediaContainer"
                 for (const child of artboard.children) {
                     if (child.type === "MediaContainer") {
-                        totalContainers++;
                         const container = child as MediaContainerNode;
+
+                        // Check if this is a watermark - if so, skip it
+                        const isWatermark = container.addOnData.getItem("isWatermark");
+                        if (isWatermark === "true") {
+                            console.log(`[Sandbox] Skipping watermark on page "${page.name || 'unnamed'}"`);
+                            continue;
+                        }
+
+                        totalContainers++;
 
                         console.log(`[Sandbox] Applying ${fitMode} to container on page "${page.name || 'unnamed'}"`);
 
