@@ -63,7 +63,8 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
 
     // UI state: Range
     const [rangeStart, setRangeStart] = React.useState(1);
-    const [rangeEnd, setRangeEnd] = React.useState(250);
+    const [rangeEnd, setRangeEnd] = React.useState(0);
+    const [pageCount, setPageCount] = React.useState(0);
 
     // Constants
     const TotalFiles = 250;
@@ -78,6 +79,39 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
             return () => clearTimeout(timer);
         }
     }, [status]);
+
+    // Page Count Polling
+    React.useEffect(() => {
+        let isMounted = true;
+        const checkPages = async () => {
+            if (!isMounted) return;
+            try {
+                const pages = await sandboxProxy.getPages();
+                if (isMounted) setPageCount(pages.length);
+            } catch (e) {
+                console.error("Failed to get pages", e);
+            }
+        };
+        checkPages();
+        const interval = setInterval(checkPages, 2000);
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
+    }, [sandboxProxy]);
+
+    // Smart Range Auto-Update
+    const prevPageCountRef = React.useRef(0);
+    React.useEffect(() => {
+        const prevCount = prevPageCountRef.current;
+        if (pageCount !== prevCount) {
+            // Update range if we were previously covering the full document (or just initialized)
+            if (rangeStart === 1 && (rangeEnd === prevCount || prevCount === 0)) {
+                setRangeEnd(pageCount);
+            }
+            prevPageCountRef.current = pageCount;
+        }
+    }, [pageCount, rangeStart, rangeEnd]);
 
     // Actual handlers
     const handleStartUpload = () => {
