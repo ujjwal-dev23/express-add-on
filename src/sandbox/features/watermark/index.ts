@@ -65,6 +65,9 @@ export async function injectWatermark(settings: WatermarkSettings, range?: { sta
                 // Append to artboard
                 artboard.children.append(watermarkContainer);
 
+                // Add metadata to identify this as a watermark
+                watermarkContainer.addOnData.setItem("isWatermark", "true");
+
                 // Calculate position based on the position parameter
                 let positionX: number;
                 let positionY: number;
