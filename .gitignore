@@ -3,6 +3,8 @@ dist/
 node_modules/
 public/
 
+dist.zip
+
 # Do not ignore Agentic IDE rules
 !.cursor/rules/
 !.agent/rules/
